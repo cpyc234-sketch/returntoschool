@@ -689,22 +689,22 @@ async function fetchRegistrationsByArea() {
  * @param {string} targetStatus - 欲更新的狀態字串 ('合格' 或是 '需重掃')
  */
 async function auditArea(areaId, targetStatus) {
-    const pwdValue = document.getElementById('inspector-pwd').value;
-    if (!pwdInput) return;
+    const inspectorPwField = document.getElementById('inspector-pwd');
+    const pwdValue = inspectorPwField ? inspectorPwField.value : '';
 
-    const pwdValue = pwdInput.value;
     if (!pwdValue) {
-        alert("操作拒絕：必須輸入糾察專屬授權密碼才能執行覆核。");
+        alert("操作拒絕：尚未取得糾察授權。請重新進入分頁以觸發密碼驗證。");
         return;
     }
 
     toggleLoading(true);
 
     try {
+        // 2. 呼叫 RPC 進行安全性二次驗證 (Key 為 'password')
         const isAuthorized = await verifyRpc('password', pwdValue);
         if (!isAuthorized) {
             toggleLoading(false);
-            alert("身分驗證失敗：糾察密碼錯誤，拒絕寫入。");
+            alert("授權過期或驗證失敗：糾察密碼錯誤，拒絕寫入。");
             return;
         }
 
@@ -718,7 +718,7 @@ async function auditArea(areaId, targetStatus) {
             console.error("批次更新狀態失敗:", updateError);
             alert("資料庫更新失敗，請檢查網路連線。");
         } else {
-            // 更新成功後，重新抓取並渲染覆核清單
+            // 4. 更新成功後，重新抓取並渲染覆核清單
             await fetchRegistrationsByArea();
         }
 
