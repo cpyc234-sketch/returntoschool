@@ -39,6 +39,8 @@ nav {
     background: var(--white) !important;
     width: fit-content;
     margin: 0 auto 30px auto;
+    gap: 0 !important;           /* ← 確保沒有 gap */
+    padding: 0 !important;       /* ← 確保沒有內距 */
 }
 
 nav button {
@@ -48,6 +50,8 @@ nav button {
     border-right: 1px solid var(--black) !important;
     background: var(--white) !important;
     cursor: pointer;
+    margin: 0 !important;        /* ← 確保沒有外距 */
+    flex-shrink: 0;
 }
 
 nav button:last-child {
