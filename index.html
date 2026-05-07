@@ -95,24 +95,22 @@
                     <p class="text-xs text-amber-600 mt-1 font-bold">本頁面僅限衛生股長操作，需通行碼授權。</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">Class Name</label>
                         <input type="number" id="stu-class" placeholder="班級"
                             class="w-full border p-4 rounded-2xl bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
+                
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">Seat Number</label>
                         <input type="number" id="stu-seat" placeholder="座號"
                             class="w-full border p-4 rounded-2xl bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-amber-400 ml-2 uppercase">Passcode</label>
-                        <input type="password" id="alloc-passcode" class="hidden">
-                        <div class="w-full border p-4 rounded-2xl bg-emerald-50 text-emerald-600 font-bold text-sm flex items-center justify-center">
-                        </div>
-                    </div>
-                    <div class="md:col-span-3 space-y-1">
+                
+                    <input type="password" id="alloc-passcode" class="hidden">
+                
+                    <div class="md:col-span-2 space-y-1">
                         <label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">Target Area</label>
                         <select id="stu-area"
                             class="w-full border p-5 rounded-2xl bg-slate-100 font-bold text-blue-700 outline-none focus:ring-2 focus:ring-blue-400">
