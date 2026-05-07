@@ -21,11 +21,14 @@
         <nav class="flex flex-wrap border-b border-slate-200 mb-8 justify-center gap-2 md:gap-8">
             <button onclick="switchTab('query')" id="tab-query"
                 class="tab-active py-2 px-4 font-bold border-blue-600 text-blue-600 transition duration-300">公告查詢</button>
-            <button onclick="switchTab('allocation')" id="tab-allocation"
+            
+            <button onclick="void switchTab('allocation')" id="tab-allocation"
                 class="py-2 px-4 font-bold text-slate-500 border-transparent border-b-2 transition duration-300">掃區分配</button>
-            <button onclick="switchTab('inspector')" id="tab-inspector"
+            
+            <button onclick="void switchTab('inspector')" id="tab-inspector"
                 class="py-2 px-4 font-bold text-slate-500 border-transparent border-b-2 transition duration-300">區域覆核</button>
-            <button onclick="switchTab('admin')" id="tab-admin"
+            
+            <button onclick="void switchTab('admin')" id="tab-admin"
                 class="py-2 px-4 font-bold text-slate-500 border-transparent border-b-2 transition duration-300">管理後台</button>
         </nav>
 
