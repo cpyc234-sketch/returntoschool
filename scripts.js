@@ -224,6 +224,26 @@ async function switchTab(tab) {
             passcodeField.value = inputPw;
         }
     }
+    if (tab === 'inspector') {
+        const inputPw = prompt("本頁面僅限糾察操作，請輸入糾察授權密碼：");
+        if (!inputPw) return;
+
+        toggleLoading(true);
+        // 注意：這裡 RPC 驗證的 key 是 'password' (原本代碼中的糾察密碼 key)
+        const isAuthorized = await verifyRpc('password', inputPw);
+        toggleLoading(false);
+
+        if (!isAuthorized) {
+            alert("驗證失敗：糾察密碼錯誤。");
+            return;
+        }
+
+        // 驗證成功，將密碼填入原本的 inspector-pwd 欄位 (可設為隱藏)
+        const inspectorField = document.getElementById('inspector-pwd');
+        if (inspectorField) {
+            inspectorField.value = inputPw;
+        }
+    }
     // 針對管理員分頁進行身分攔截與驗證
     if (tab === 'admin') {
         const { data: authData } = await _supabase.auth.getSession();
@@ -669,7 +689,7 @@ async function fetchRegistrationsByArea() {
  * @param {string} targetStatus - 欲更新的狀態字串 ('合格' 或是 '需重掃')
  */
 async function auditArea(areaId, targetStatus) {
-    const pwdInput = document.getElementById('inspector-pwd');
+    const pwdValue = document.getElementById('inspector-pwd').value;
     if (!pwdInput) return;
 
     const pwdValue = pwdInput.value;
