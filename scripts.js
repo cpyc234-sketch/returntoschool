@@ -612,7 +612,6 @@ async function fetchRegistrationsByArea() {
         const listContainer = document.getElementById('inspector-list');
         if (!listContainer) return;
 
-        // 將所有登記資料依照區域進行分組篩選
         const groupedData = [];
         for (let a = 0; a < allAreas.length; a++) {
             const currentArea = allAreas[a];
@@ -625,7 +624,6 @@ async function fetchRegistrationsByArea() {
                 }
             }
 
-            // 只有當該區域有學生存在時，才列入審核清單
             if (studentsInArea.length > 0) {
                 groupedData.push({
                     areaData: currentArea,
@@ -655,9 +653,9 @@ async function fetchRegistrationsByArea() {
             const namesDisplay = namesStringArray.join('、');
 
             let actionButtonsHtml = '';
+            // --- 修正重點 1: 參數加上單引號，避免長字串導致 JS 崩潰 ---
             if (group.pendingCount > 0) {
                 actionButtonsHtml = `
-                    /* 重點在於 ${group.areaData.id} 前後要加上引號 */
                     <button onclick="auditArea('${group.areaData.id}', '合格')" class="bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-600 transition mb-1">批准整區合格</button>
                     <button onclick="auditArea('${group.areaData.id}', '需重掃')" class="bg-rose-100 text-rose-700 px-3 py-2 rounded-xl text-xs font-bold hover:bg-rose-200 transition">退回全區重掃</button>
                 `;
