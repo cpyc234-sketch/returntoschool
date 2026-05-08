@@ -657,8 +657,9 @@ async function fetchRegistrationsByArea() {
             let actionButtonsHtml = '';
             if (group.pendingCount > 0) {
                 actionButtonsHtml = `
-                    <button onclick="auditArea(${group.areaData.id}, '合格')" class="bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-600 transition mb-1">批准整區合格</button>
-                    <button onclick="auditArea(${group.areaData.id}, '需重掃')" class="bg-rose-100 text-rose-700 px-3 py-2 rounded-xl text-xs font-bold hover:bg-rose-200 transition">退回全區重掃</button>
+                    /* 重點在於 ${group.areaData.id} 前後要加上引號 */
+                    <button onclick="auditArea('${group.areaData.id}', '合格')" class="bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-600 transition mb-1">批准整區合格</button>
+                    <button onclick="auditArea('${group.areaData.id}', '需重掃')" class="bg-rose-100 text-rose-700 px-3 py-2 rounded-xl text-xs font-bold hover:bg-rose-200 transition">退回全區重掃</button>
                 `;
             } else {
                 actionButtonsHtml = '<span class="text-emerald-500 text-xs font-bold border border-emerald-200 bg-emerald-50 px-2 py-1 rounded">該區已全數通過</span>';
