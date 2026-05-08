@@ -239,9 +239,14 @@ async function switchTab(tab) {
         }
 
         // 驗證成功，將密碼填入原本的 inspector-pwd 欄位 (可設為隱藏)
+        // --- 關鍵修正區 ---
         const inspectorField = document.getElementById('inspector-pwd');
         if (inspectorField) {
             inspectorField.value = inputPw;
+            console.log("密碼已填入隱藏欄位，準備執行資料抓取");
+        } else {
+            // 如果 HTML 還沒渲染出來，這裡會抓不到
+            console.error("錯誤：找不到 id='inspector-pwd' 的元素");
         }
     }
     // 針對管理員分頁進行身分攔截與驗證
