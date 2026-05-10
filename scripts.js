@@ -239,9 +239,14 @@ async function switchTab(tab) {
         }
 
         // 驗證成功，將密碼填入原本的 inspector-pwd 欄位 (可設為隱藏)
+        // --- 關鍵修正區 ---
         const inspectorField = document.getElementById('inspector-pwd');
         if (inspectorField) {
             inspectorField.value = inputPw;
+            console.log("密碼已填入隱藏欄位，準備執行資料抓取");
+        } else {
+            // 如果 HTML 還沒渲染出來，這裡會抓不到
+            console.error("錯誤：找不到 id='inspector-pwd' 的元素");
         }
     }
     // 針對管理員分頁進行身分攔截與驗證
@@ -607,7 +612,6 @@ async function fetchRegistrationsByArea() {
         const listContainer = document.getElementById('inspector-list');
         if (!listContainer) return;
 
-        // 將所有登記資料依照區域進行分組篩選
         const groupedData = [];
         for (let a = 0; a < allAreas.length; a++) {
             const currentArea = allAreas[a];
@@ -620,7 +624,6 @@ async function fetchRegistrationsByArea() {
                 }
             }
 
-            // 只有當該區域有學生存在時，才列入審核清單
             if (studentsInArea.length > 0) {
                 groupedData.push({
                     areaData: currentArea,
@@ -650,10 +653,11 @@ async function fetchRegistrationsByArea() {
             const namesDisplay = namesStringArray.join('、');
 
             let actionButtonsHtml = '';
+            // --- 修正重點 1: 參數加上單引號，避免長字串導致 JS 崩潰 ---
             if (group.pendingCount > 0) {
                 actionButtonsHtml = `
-                    <button onclick="auditArea(${group.areaData.id}, '合格')" class="bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-600 transition mb-1">批准整區合格</button>
-                    <button onclick="auditArea(${group.areaData.id}, '需重掃')" class="bg-rose-100 text-rose-700 px-3 py-2 rounded-xl text-xs font-bold hover:bg-rose-200 transition">退回全區重掃</button>
+                    <button onclick="auditArea('${group.areaData.id}', '合格')" class="bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-600 transition mb-1">批准整區合格</button>
+                    <button onclick="auditArea('${group.areaData.id}', '需重掃')" class="bg-rose-100 text-rose-700 px-3 py-2 rounded-xl text-xs font-bold hover:bg-rose-200 transition">退回全區重掃</button>
                 `;
             } else {
                 actionButtonsHtml = '<span class="text-emerald-500 text-xs font-bold border border-emerald-200 bg-emerald-50 px-2 py-1 rounded">該區已全數通過</span>';
