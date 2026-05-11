@@ -524,14 +524,11 @@ async function fetchAreas() {
  * 處理衛生股長提交掃區分配的請求
  */
 async function handleAllocation() {
-    // 從頁面元素獲取值
     const clsValue = document.getElementById('stu-class').value;
     const seatValue = document.getElementById('stu-seat').value;
     const areaIdValue = document.getElementById('stu-area').value;
-    // 這裡會抓到我們在 switchTab 階段就填入的驗證碼
     const passcodeValue = document.getElementById('alloc-passcode').value;
 
-    // 檢查欄位是否齊全 (現在不用檢查密碼框，因為沒輸入密碼根本進不來這頁)
     if (!clsValue || !seatValue || !areaIdValue) {
         alert("操作拒絕：請完整填寫班級與座號。");
         return;
@@ -540,8 +537,6 @@ async function handleAllocation() {
     toggleLoading(true);
 
     try {
-        // 第一階段：二次驗證 (選用，確保安全)
-        // 雖然進入時驗證過，但在送出資料時再過一次驗證是最保險的做法
         const isAuthorized = await verifyRpc('password1', passcodeValue);
         if (!isAuthorized) {
             toggleLoading(false);
@@ -549,7 +544,6 @@ async function handleAllocation() {
             return;
         }
 
-        // 第二階段：檢查掃區班級限制 (維持原樣)
         const selectedArea = allAreas.find(area => String(area.id) === areaIdValue);
         if (!selectedArea) {
             toggleLoading(false);
@@ -563,7 +557,6 @@ async function handleAllocation() {
             return;
         }
 
-        // 第三階段：執行寫入 (維持原樣)
         const insertPayload = {
             class_name: clsValue,
             seat_number: seatValue,
@@ -577,15 +570,73 @@ async function handleAllocation() {
             alert("寫入失敗：該名學生可能已有紀錄，或名額已滿。");
         } else {
             alert("分配作業成功！");
-            await fetchAreas(); // 更新名額
-            // 只清空座號，保留班級與掃區，方便衛生股長連續幫同班同學輸入
+            await fetchAreas();
+            await fetchAllocations(); // 新增
             document.getElementById('stu-seat').value = '';
         }
-
     } catch (error) {
         toggleLoading(false);
         console.error("分配程序異常:", error);
         alert("系統發生未知錯誤。");
+    }
+}
+
+async function fetchAllocations() {
+    const clsValue = document.getElementById('stu-class').value;
+    if (!clsValue) return;
+
+    const { data, error } = await _supabase.from('registrations')
+        .select('*')
+        .eq('class_name', clsValue)
+        .order('seat_number');
+
+    const listBox = document.getElementById('alloc-list');
+    if (!listBox) return;
+
+    if (!data || data.length === 0) {
+        listBox.innerHTML = '<p class="text-xs text-slate-400 text-center py-3">目前尚無登記紀錄。</p>';
+        return;
+    }
+
+    let html = '';
+    for (let i = 0; i < data.length; i++) {
+        const reg = data[i];
+        const matchedArea = allAreas.find(a => a.id === reg.area_id);
+        const locationName = matchedArea ? matchedArea.location : '未知掃區';
+
+        html += `
+            <div class="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                <span class="font-bold text-slate-700">${reg.class_name} 班 ${reg.seat_number} 號</span>
+                <span class="text-blue-600">${locationName}</span>
+                <button onclick="deleteAllocation(${reg.id})" class="text-rose-500 hover:text-rose-700 font-bold border border-rose-200 bg-rose-50 px-2 py-1 rounded-lg transition">刪除</button>
+            </div>
+        `;
+    }
+    listBox.innerHTML = html;
+}
+
+async function deleteAllocation(regId) {
+    const isConfirmed = confirm("確定要刪除此筆登記紀錄嗎？");
+    if (!isConfirmed) return;
+
+    const passcodeValue = document.getElementById('alloc-passcode').value;
+    toggleLoading(true);
+
+    const isAuthorized = await verifyRpc('password1', passcodeValue);
+    if (!isAuthorized) {
+        toggleLoading(false);
+        alert("授權過期，請重新進入頁面。");
+        return;
+    }
+
+    const { error } = await _supabase.from('registrations').delete().eq('id', regId);
+    toggleLoading(false);
+
+    if (error) {
+        alert("刪除失敗：" + error.message);
+    } else {
+        await fetchAreas();
+        await fetchAllocations();
     }
 }
 
