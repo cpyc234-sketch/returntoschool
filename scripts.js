@@ -557,7 +557,7 @@ async function handleAllocation() {
             return;
         }
 
-        if (String(selectedArea.class_name) !== clsValue) {
+        if (String(selectedArea.class_name) !== '000' && String(selectedArea.class_name) !== clsValue) {
             toggleLoading(false);
             alert(`分配限制攔截：所選之掃區僅開放給「${selectedArea.class_name}」班級的學生。`);
             return;
