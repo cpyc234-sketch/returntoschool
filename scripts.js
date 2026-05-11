@@ -608,14 +608,21 @@ async function fetchAllocations() {
             <div class="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs">
                 <span class="font-bold text-slate-700">${reg.class_name} 班 ${reg.seat_number} 號</span>
                 <span class="text-blue-600">${locationName}</span>
-                <button onclick="deleteAllocation(${reg.id})" class="text-rose-500 hover:text-rose-700 font-bold border border-rose-200 bg-rose-50 px-2 py-1 rounded-lg transition">刪除</button>
+                <button onclick="deleteAllocation(${reg.id}, '${reg.class_name}')" class="text-rose-500 hover:text-rose-700 font-bold border border-rose-200 bg-rose-50 px-2 py-1 rounded-lg transition">刪除</button>
             </div>
         `;
     }
     listBox.innerHTML = html;
 }
 
-async function deleteAllocation(regId) {
+async function deleteAllocation(regId, regClass) {
+    const clsValue = document.getElementById('stu-class').value;
+    
+    if (String(regClass) !== String(clsValue)) {
+        alert("操作拒絕：只能刪除本班的登記紀錄。");
+        return;
+    }
+    
     const isConfirmed = confirm("確定要刪除此筆登記紀錄嗎？");
     if (!isConfirmed) return;
 
