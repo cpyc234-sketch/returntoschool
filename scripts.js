@@ -99,7 +99,7 @@ const ADMIN_HTML = `
             <input type="hidden" id="a-id">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
                 <input type="text" id="a-loc" placeholder="掃區地點名稱" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
-                <input type="number" id="a-cls" placeholder="負責班級代碼" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
+                <input type="text" id="a-cls" placeholder="負責班級代碼" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
                 <input type="number" id="a-max" placeholder="需求人數上限" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
             </div>
             <div class="flex gap-2">
