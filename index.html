@@ -104,7 +104,7 @@
                 
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">Seat Number</label>
-                        <input type="number" id="stu-seat" placeholder="座號"
+                        <input type="number" id="stu-class" placeholder="班級" onchange="fetchAllocations()"
                             class="w-full border p-4 rounded-2xl bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 
@@ -120,6 +120,11 @@
                 </div>
                 <button onclick="handleAllocation()"
                     class="mt-8 w-full bg-blue-600 text-white font-black py-5 rounded-[2rem] hover:bg-blue-700 transition shadow-xl active:scale-95">確認送出分配結果</button>
+                <div class="mt-6">
+                    <h3 class="text-sm font-bold text-slate-600 mb-2">本班已登記名單</h3>
+                    <div id="alloc-list" class="space-y-2"></div>
+                </div>
+                
             </div>
         </section>
 
