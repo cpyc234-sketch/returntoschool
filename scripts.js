@@ -345,7 +345,7 @@ async function fetchAnnouncements() {
     try {
         const { data, error } = await _supabase.from('announcements')
             .select('*')
-            .order('created_at', { descending: true });
+            .order('created_at', { ascending: false });
 
         if (error) throw error;
 
@@ -1259,7 +1259,7 @@ async function refreshAdminPanel() {
         const [areasResponse, regsResponse, annsResponse] = await Promise.all([
             _supabase.from('areas').select('*').order('class_name'),
             _supabase.from('registrations').select('*'),
-            _supabase.from('announcements').select('*').order('created_at', { descending: true })
+            _supabase.from('announcements').select('*').order('created_at', { ascending: false })
         ]);
 
         toggleLoading(false);
