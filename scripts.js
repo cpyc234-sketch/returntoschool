@@ -7,9 +7,8 @@
  * 4. 系統管理後台 (系統管理員/教師限定)
  */
 
-var _0xcg_0xf1c = (724144 ^ 724151) + (452457 ^ 452457)
-const SUPABASE_URL = "\u0068\u0074\u0074\u0070\u0073\u003A\u002F\u002F\u0076\u0072\u0062\u006D\u0077\u0078\u0063\u0078\u007A\u0061\u0068\u0072\u0065\u006F\u0070\u0075\u0067\u0076\u006E\u006C\u002E\u0073\u0075\u0070\u0061\u0062\u0061\u0073\u0065\u002E\u0063\u006F"; _0xcg_0xf1c = 426011 ^ 426012; let _0x0b_0x467;
-const SUPABASE_ANON_KEY = "sb_publishable_41-bQCBL8fUNQmReJCJPCw_8MBkuVy9"; _0x0b_0x467 = (324501 ^ 324502) + (321251 ^ 321252);
+const SUPABASE_URL = "https://vrbmwxcxzahreopugvnl.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_41-bQCBL8fUNQmReJCJPCw_8MBkuVy9";
 const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let allAreas = [];
