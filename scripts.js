@@ -111,7 +111,18 @@ const ADMIN_HTML = `
                 </table>
             </div>
         </div>
-
+<div class="bg-white p-6 rounded-3xl border shadow-sm">
+    <h2 class="text-xl font-bold mb-4 text-purple-700">各班衛生股長通行碼設定</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <input type="text" id="cp-class" placeholder="班級 (例如 101)" 
+            class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500">
+        <input type="text" id="cp-password" placeholder="設定通行碼" 
+            class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500">
+        <button onclick="saveClassPassword()" 
+            class="bg-purple-600 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-purple-700 transition">儲存通行碼</button>
+    </div>
+    <div id="cp-list" class="mt-4 space-y-2 border-t pt-4"></div>
+</div>
         <div class="p-6 bg-rose-50 rounded-3xl border border-rose-200">
             <h3 class="text-lg font-bold text-rose-700 mb-2">系統危險操作區 (資料重設)</h3>
             <p class="text-xs text-rose-600 mb-4">警告：以下操作將永久刪除資料庫中的紀錄，執行前系統將要求輸入驗證碼。</p>
