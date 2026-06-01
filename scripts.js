@@ -647,7 +647,6 @@ async function deleteAllocation(regId, regClass) {
     const passcodeValue = document.getElementById('alloc-passcode').value;
     toggleLoading(true);
 
-    const clsValue = document.getElementById('stu-class').value;
     const isAuthorized = await verifyRpc(`class_${clsValue}`, passcodeValue);
     if (!isAuthorized) {
         toggleLoading(false);
@@ -1378,8 +1377,8 @@ async function refreshAdminPanel() {
                 `;
             }
             annManageContainer.innerHTML = annManageHtml;
-        }
-
+            }
+            await loadClassPasswords(); // 加這行
     } catch (error) {
         toggleLoading(false);
         console.error("載入管理員面板資料失敗", error);
@@ -1404,4 +1403,65 @@ function toggleLicense(showStatus) {
             document.body.style.overflow = 'auto';
         }
     }
+}
+async function saveClassPassword() {
+    const cls = document.getElementById('cp-class').value.trim();
+    const pwd = document.getElementById('cp-password').value.trim();
+
+    if (!cls || !pwd) {
+        alert("請填寫班級與通行碼。");
+        return;
+    }
+
+    toggleLoading(true);
+    const { error } = await _supabase.from('settings')
+        .upsert({ key: `class_${cls}`, value: pwd }, { onConflict: 'key' });
+    toggleLoading(false);
+
+    if (error) {
+        alert("儲存失敗：" + error.message);
+    } else {
+        document.getElementById('cp-class').value = '';
+        document.getElementById('cp-password').value = '';
+        await loadClassPasswords();
+        alert("通行碼設定成功。");
+    }
+}
+
+async function loadClassPasswords() {
+    const { data, error } = await _supabase.from('settings')
+        .select('*')
+        .like('key', 'class_%')
+        .order('key');
+
+    const container = document.getElementById('cp-list');
+    if (!container || error) return;
+
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400">尚未設定任何班級通行碼。</p>';
+        return;
+    }
+
+    let html = '';
+    for (const item of data) {
+        const className = item.key.replace('class_', '');
+        html += `
+            <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border text-sm">
+                <span class="font-bold">${className} 班</span>
+                <span class="font-mono text-slate-500">${item.value}</span>
+                <button onclick="deleteClassPassword('${item.key}')" 
+                    class="text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1 rounded-lg text-xs font-bold border border-rose-200 transition">刪除</button>
+            </div>
+        `;
+    }
+    container.innerHTML = html;
+}
+
+async function deleteClassPassword(key) {
+    const cls = key.replace('class_', '');
+    if (!confirm(`確定刪除 ${cls} 班的通行碼？`)) return;
+    toggleLoading(true);
+    await _supabase.from('settings').delete().eq('key', key);
+    toggleLoading(false);
+    await loadClassPasswords();
 }
