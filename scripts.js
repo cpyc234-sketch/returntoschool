@@ -205,24 +205,32 @@ async function verifyRpc(key, input) {
  */
 async function switchTab(tab) {
     if (tab === 'allocation') {
-        const inputPw = prompt("本頁面僅限衛生股長操作，請輸入股長通行碼：");
-        if (!inputPw) return; // 使用者按取消或沒輸入則不跳轉
+    const inputClass = prompt("請輸入您的班級：");
+    if (!inputClass) return;
 
-        toggleLoading(true);
-        const isAuthorized = await verifyRpc('password1', inputPw);
-        toggleLoading(false);
+    const inputPw = prompt("請輸入本班通行碼：");
+    if (!inputPw) return;
 
-        if (!isAuthorized) {
-            alert("授權失敗：股長通行碼輸入錯誤，無法進入分配系統。");
-            return; // 驗證失敗，停留在原頁面
-        }
+    toggleLoading(true);
+    const isAuthorized = await verifyRpc(`class_${inputClass}`, inputPw);
+    toggleLoading(false);
 
-        // 驗證成功，將密碼填入隱藏欄位，供 handleAllocation 使用
-        const passcodeField = document.getElementById('alloc-passcode');
-        if (passcodeField) {
-            passcodeField.value = inputPw;
-        }
+    if (!isAuthorized) {
+        alert("授權失敗：班級或通行碼錯誤。");
+        return;
     }
+
+    const clsField = document.getElementById('stu-class');
+    if (clsField) {
+        clsField.value = inputClass;
+        clsField.readOnly = true;
+    }
+
+    const passcodeField = document.getElementById('alloc-passcode');
+    if (passcodeField) {
+        passcodeField.value = inputPw;
+    }
+}
     if (tab === 'inspector') {
         const inputPw = prompt("本頁面僅限糾察操作，請輸入糾察授權密碼：");
         if (!inputPw) return;
@@ -536,7 +544,7 @@ async function handleAllocation() {
     toggleLoading(true);
 
     try {
-        const isAuthorized = await verifyRpc('password1', passcodeValue);
+        const isAuthorized = await verifyRpc(`class_${clsValue}`, passcodeValue);
         if (!isAuthorized) {
             toggleLoading(false);
             alert("授權過期或通行碼錯誤，請重新整理網頁後登入。");
@@ -628,7 +636,8 @@ async function deleteAllocation(regId, regClass) {
     const passcodeValue = document.getElementById('alloc-passcode').value;
     toggleLoading(true);
 
-    const isAuthorized = await verifyRpc('password1', passcodeValue);
+    const clsValue = document.getElementById('stu-class').value;
+    const isAuthorized = await verifyRpc(`class_${clsValue}`, passcodeValue);
     if (!isAuthorized) {
         toggleLoading(false);
         alert("授權過期，請重新進入頁面。");
