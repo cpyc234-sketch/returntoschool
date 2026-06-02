@@ -241,6 +241,7 @@ async function switchTab(tab) {
     if (passcodeField) {
         passcodeField.value = inputPw;
     }
+        window._loginClass = inputClass;
 }
     if (tab === 'inspector') {
         const inputPw = prompt("本頁面僅限糾察操作，請輸入糾察授權密碼：");
@@ -562,7 +563,7 @@ async function handleAllocation() {
     toggleLoading(true);
 
     try {
-        const isAuthorized = await verifyRpc(`class_${clsValue}`, passcodeValue);
+        const isAuthorized = await verifyRpc(`class_${window._loginClass}`, passcodeValue);
         if (!isAuthorized) {
             toggleLoading(false);
             alert("授權過期或通行碼錯誤，請重新整理網頁後登入。");
@@ -654,7 +655,7 @@ async function deleteAllocation(regId, regClass) {
     const passcodeValue = document.getElementById('alloc-passcode').value;
     toggleLoading(true);
 
-    const isAuthorized = await verifyRpc(`class_${clsValue}`, passcodeValue);
+    const isAuthorized = await verifyRpc(`class_${window._loginClass}`, passcodeValue);
     if (!isAuthorized) {
         toggleLoading(false);
         alert("授權過期，請重新進入頁面。");
