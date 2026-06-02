@@ -518,15 +518,22 @@ async function fetchAreas() {
         if (!selectElement) return;
 
         let optionsHtml = '';
+        const currentClass = document.getElementById('stu-class') ? document.getElementById('stu-class').value : '';
         for (let k = 0; k < allAreas.length; k++) {
             const areaItem = allAreas[k];
+        
+            // 只顯示自己班 或 000班的掃區
+            if (currentClass && String(areaItem.class_name) !== '000' && String(areaItem.class_name) !== currentClass) {
+                continue;
+            }
+        
             const assignedCount = (regsData || []).filter(r => r.area_id === areaItem.id).length;
             const remainingSpots = areaItem.max_count - assignedCount;
             const isFullyBooked = remainingSpots <= 0;
-
+        
             const disableAttr = isFullyBooked ? 'disabled' : '';
             const statusText = isFullyBooked ? '已無名額' : `尚餘 ${remainingSpots} 個名額`;
-
+        
             optionsHtml += `<option value="${areaItem.id}" ${disableAttr}>[${areaItem.class_name}班負責] ${areaItem.location} (狀態：${statusText})</option>`;
         }
         selectElement.innerHTML = optionsHtml;
