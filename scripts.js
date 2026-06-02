@@ -242,6 +242,7 @@ async function switchTab(tab) {
         passcodeField.value = inputPw;
     }
         window._loginClass = inputClass;
+        await fetchAllocations();
 }
     if (tab === 'inspector') {
         const inputPw = prompt("本頁面僅限糾察操作，請輸入糾察授權密碼：");
