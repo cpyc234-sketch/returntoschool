@@ -732,8 +732,11 @@ async function fetchRegistrationsByArea() {
                 const isPass = stu.status === '合格';
                 const colorClass = isPass ? 'text-emerald-600 font-bold' : 'text-slate-500';
                 const tag = stu.status === '需重掃' ? '(被標記重掃)' : '';
-                namesStringArray.push(`<span class="${colorClass}">${stu.seat_number}號${tag}</span>`);
-            }
+                const displayName = String(group.areaData.class_name) === '000' 
+                    ? `${stu.class_name}班${stu.seat_number}號` 
+                    : `${stu.seat_number}號`;
+                namesStringArray.push(`<span class="${colorClass}">${displayName}${tag}</span>`);
+                            }
             const namesDisplay = namesStringArray.join('、');
 
             let actionButtonsHtml = '';
