@@ -1332,9 +1332,12 @@ async function refreshAdminPanel() {
                     const isOk = stuRec.status === '合格';
                     const fontColor = isOk ? 'text-emerald-700' : 'text-slate-500';
                     const currentStat = stuRec.status || '等待審核';
+                    const displayLabel = String(currentArea.class_name) === '000'
+                        ? `${stuRec.class_name}班${stuRec.seat_number}號`
+                        : `座號 ${stuRec.seat_number} 號`;
                     studentsTagHtml += `
                         <span class="inline-block bg-slate-50 border border-slate-200 rounded px-2 py-1 m-1 text-xs">
-                            座號 ${stuRec.seat_number} 號 <b class="${fontColor}">[狀態：${currentStat}]</b>
+                            ${displayLabel} <b class="${fontColor}">[狀態：${currentStat}]</b>
                         </span>
                     `;
                 }
