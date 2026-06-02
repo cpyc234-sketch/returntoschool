@@ -612,13 +612,27 @@ async function fetchAllocations() {
     const clsValue = document.getElementById('stu-class').value;
     if (!clsValue) return;
 
-    const { data, error } = await _supabase.from('registrations')
-        .select('*')
-        .eq('class_name', clsValue)
-        .order('seat_number');
-
     const listBox = document.getElementById('alloc-list');
     if (!listBox) return;
+
+    let query = _supabase.from('registrations').select('*');
+
+    if (clsValue === '000') {
+        // 000班：查所有登記在000班掃區的紀錄
+        const areaIds = allAreas
+            .filter(a => String(a.class_name) === '000')
+            .map(a => a.id);
+        if (areaIds.length === 0) {
+            listBox.innerHTML = '<p class="text-xs text-slate-400 text-center py-3">目前尚無登記紀錄。</p>';
+            return;
+        }
+        query = query.in('area_id', areaIds);
+    } else {
+        // 一般班級：查該班級的紀錄
+        query = query.eq('class_name', clsValue);
+    }
+
+    const { data, error } = await query.order('seat_number');
 
     if (!data || data.length === 0) {
         listBox.innerHTML = '<p class="text-xs text-slate-400 text-center py-3">目前尚無登記紀錄。</p>';
@@ -641,11 +655,10 @@ async function fetchAllocations() {
     }
     listBox.innerHTML = html;
 }
-
 async function deleteAllocation(regId, regClass) {
     const clsValue = document.getElementById('stu-class').value;
     
-    if (String(regClass) !== String(clsValue)) {
+    if (clsValue !== '000' && String(regClass) !== String(clsValue)) {
         alert("操作拒絕：只能刪除本班的登記紀錄。");
         return;
     }
