@@ -234,7 +234,7 @@ async function switchTab(tab) {
     const clsField = document.getElementById('stu-class');
     if (clsField) {
         clsField.value = inputClass;
-        clsField.readOnly = true;
+        clsField.readOnly = inputClass !== '000'; // 000班不鎖定
     }
 
     const passcodeField = document.getElementById('alloc-passcode');
@@ -523,7 +523,7 @@ async function fetchAreas() {
             const areaItem = allAreas[k];
         
             // 只顯示自己班 或 000班的掃區
-            if (currentClass && String(areaItem.class_name) !== '000' && String(areaItem.class_name) !== currentClass) {
+            if (!currentClass || String(areaItem.class_name) !== currentClass) {
                 continue;
             }
         
