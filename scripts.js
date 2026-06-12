@@ -220,20 +220,31 @@ async function verifyRpc(key, input) {
  */
 async function switchTab(tab) {
     if (tab === 'allocation') {
-    const inputClass = prompt("請輸入您的班級：");
+    const targetClass = prompt("本頁面僅限衛生股長操作，請輸入您的班級 (例如: 101)：");
     if (!inputClass) return;
 
-    const inputPw = prompt("請輸入本班通行碼：");
+    const inputPw = prompt(`請輸入 ${targetClass} 班的衛生股長通行碼：`);
     if (!inputPw) return;
 
     toggleLoading(true);
-    const isAuthorized = await verifyRpc(`class_${inputClass}`, inputPw);
+    const { data: configData, error } = await _supabase
+            .from('config') // 請確保這名稱跟你 Supabase 儲存通行碼的資料表一致
+            .select('value')
+            .eq('key', `class_${targetClass}`)
+            .single();
+        
     toggleLoading(false);
 
-    if (!isAuthorized) {
-        alert("授權失敗：班級或通行碼錯誤。");
-        return;
+    if (error || !configData || configData.value !== inputPw) {
+            alert("授權失敗：班級或股長通行碼輸入錯誤！");
+            return; 
     }
+    document.getElementById('stu-class').value = targetClass;
+    document.getElementById('alloc-passcode').value = inputPw;
+        
+        // 鎖定班級欄位為唯讀，防止股長幫別班亂排資料
+    document.getElementById('stu-class').readOnly = true; 
+}
 
     const clsField = document.getElementById('stu-class');
     if (clsField) {
@@ -1436,6 +1447,23 @@ function toggleLicense(showStatus) {
         }
     }
 }
+function generateRandomPassword() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    const length = Math.floor(Math.random() * 3) + 4; // 隨機 4~6 位
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    // 自動填入後台的密碼輸入框
+    const passwordInput = document.getElementById('cp-password');
+    if (passwordInput) {
+        passwordInput.value = result;
+    }
+}
+
+/**
+ * 原有的儲存通行碼函式 (維持不變，僅供對照位置)
+ */
 async function saveClassPassword() {
     const cls = document.getElementById('cp-class').value.trim();
     const pwd = document.getElementById('cp-password').value.trim();
