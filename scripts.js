@@ -116,8 +116,12 @@ const ADMIN_HTML = `
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <input type="text" id="cp-class" placeholder="班級 (例如 101)" 
             class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500">
-        <input type="text" id="cp-password" placeholder="設定通行碼" 
-            class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500">
+        <div class="flex gap-1">
+            <input type="text" id="cp-password" placeholder="設定通行碼" 
+                class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500 flex-grow">
+            <button onclick="generateRandomPassword()" 
+                class="bg-slate-500 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-slate-600 transition" title="隨機產生通行碼">🎲</button>
+        </div>
         <button onclick="saveClassPassword()" 
             class="bg-purple-600 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-purple-700 transition">儲存通行碼</button>
     </div>
