@@ -220,44 +220,45 @@ async function verifyRpc(key, input) {
  */
 async function switchTab(tab) {
     if (tab === 'allocation') {
-    const targetClass = prompt("本頁面僅限衛生股長操作，請輸入您的班級 (例如: 101)：");
-    if (!inputClass) return;
-
-    const inputPw = prompt(`請輸入 ${targetClass} 班的衛生股長通行碼：`);
-    if (!inputPw) return;
-
-    toggleLoading(true);
-    const { data: configData, error } = await _supabase
-            .from('config') // 請確保這名稱跟你 Supabase 儲存通行碼的資料表一致
-            .select('value')
-            .eq('key', `class_${targetClass}`)
-            .single();
-        
-    toggleLoading(false);
-
-    if (error || !configData || configData.value !== inputPw) {
-            alert("授權失敗：班級或股長通行碼輸入錯誤！");
-            return; 
+        const targetClass = prompt("本頁面僅限衛生股長操作，請輸入您的班級 (例如: 101)：");
+        if (!targetClass) return;
+    
+        const inputPw = prompt(`請輸入 ${targetClass} 班的衛生股長通行碼：`);
+        if (!inputPw) return;
+    
+        toggleLoading(true);
+        const { data: configData, error } = await _supabase
+                .from('settings') // 請確保這名稱跟你 Supabase 儲存通行碼的資料表一致
+                .select('value')
+                .eq('key', `class_${targetClass}`)
+                .single();
+            
+        toggleLoading(false);
+    
+        if (error || !configData || configData.value !== inputPw) {
+                alert("授權失敗：班級或股長通行碼輸入錯誤！");
+                return; 
+        }
+        const clsField = document.getElementById('stu-class');
+        if (clsField) {
+            clsField.value = targetClass;
+                // 000班不鎖定唯讀，其餘一般班級鎖定，防止股長幫別班亂填
+            clsField.readOnly = targetClass !== '000'; 
+        }
+    
+        const passcodeField = document.getElementById('alloc-passcode');
+        if (passcodeField) {
+            passcodeField.value = inputPw;
+        }
+    
+            // 核心：儲存全域變數，確保 handleAllocation 的 verifyRpc 不會失敗
+        window._loginClass = targetClass; 
+            
+            // 登入成功後，立刻刷新一次該班級的掃區名額與現有登記清單
+        await fetchAreas();
+        await fetchAllocations();
     }
-    document.getElementById('stu-class').value = targetClass;
-    document.getElementById('alloc-passcode').value = inputPw;
-        
-        // 鎖定班級欄位為唯讀，防止股長幫別班亂排資料
-    document.getElementById('stu-class').readOnly = true; 
-}
-
-    const clsField = document.getElementById('stu-class');
-    if (clsField) {
-        clsField.value = inputClass;
-        clsField.readOnly = inputClass !== '000'; // 000班不鎖定
-    }
-
-    const passcodeField = document.getElementById('alloc-passcode');
-    if (passcodeField) {
-        passcodeField.value = inputPw;
-    }
-        window._loginClass = inputClass;
-}
+    
     if (tab === 'inspector') {
         const inputPw = prompt("本頁面僅限糾察操作，請輸入糾察授權密碼：");
         if (!inputPw) return;
