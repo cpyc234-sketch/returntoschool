@@ -539,7 +539,7 @@ async function fetchAreas() {
             const areaItem = allAreas[k];
         
             // 只顯示自己班 或 000班的掃區
-            if (!currentClass || String(areaItem.class_name) !== currentClass) {
+            if (currentClass && String(areaItem.class_name) !== currentClass) {
                 continue;
             }
         
