@@ -245,12 +245,10 @@ async function switchTab(tab) {
                 // 000班不鎖定唯讀，其餘一般班級鎖定，防止股長幫別班亂填
             clsField.readOnly = targetClass !== '000'; 
             if (targetClass === '000') {
-                    clsField.oninput = async () => {
+                clsField.oninput = async () => {
                         // 當手動修改班級文字時，動態同步全域變數，這樣撈資料和驗證才不會出錯
-                        window._loginClass = clsField.value.trim();
-                        await fetchAreas();
-                        await fetchAllocations();
-                    };
+                    await fetchAllocations();
+                };
             }
         }
     
