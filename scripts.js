@@ -542,12 +542,12 @@ async function fetchAreas() {
         if (!selectElement) return;
 
         let optionsHtml = '';
-        const currentClass = document.getElementById('stu-class') ? document.getElementById('stu-class').value : '';
+        const loginClass = window._loginClass || '';
         for (let k = 0; k < allAreas.length; k++) {
             const areaItem = allAreas[k];
         
             // 只顯示自己班 或 000班的掃區
-            if (currentClass && String(areaItem.class_name) !== currentClass) {
+            if (!loginClass || String(areaItem.class_name) !== loginClass) {
                 continue;
             }
         
