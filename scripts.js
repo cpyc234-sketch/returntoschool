@@ -428,10 +428,8 @@ async function handleQueryBySid() {
 
     try {
         // 第一階段：查詢學生基本資料與班級座號
-        const { data: studentData, error: stuError } = await _supabase.from('students')
-            .select('*')
-            .eq('student_id', sid)
-            .single();
+        const { data: studentDataArr, error: stuError } = await _supabase.rpc('get_student_by_sid', { p_sid: sid });
+        const studentData = studentDataArr && studentDataArr.length > 0 ? studentDataArr[0] : null;
 
         if (stuError || !studentData) {
             toggleLoading(false);
