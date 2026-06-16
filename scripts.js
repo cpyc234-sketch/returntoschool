@@ -247,6 +247,7 @@ async function switchTab(tab) {
             if (targetClass === '000') {
                 clsField.oninput = async () => {
                         // 當手動修改班級文字時，動態同步全域變數，這樣撈資料和驗證才不會出錯
+                    await fetchAreas();
                     await fetchAllocations();
                 };
             } else {
@@ -542,24 +543,25 @@ async function fetchAreas() {
         if (!selectElement) return;
 
         let optionsHtml = '';
-        let loginClass = '';
+        const loginClass = window._loginClass || '';
+        const currentInputClass = document.getElementById('stu-class')?.value.trim() || '';
         
-        if (window._loginClass === '000') {
-            // 狀況 A：如果是 000 學生登入，強制鎖定只撈取 000 班負責的公共掃區
-            // 這樣不論輸入框被改成 112 還是 212，選單都不會消失
-            loginClass = '000';
-        } else {
-            // 狀況 B：其餘一般班級 (101等)，完全維持你原本最原始的邏輯！
-            // 優先讀取最初登入班級，若無則抓取輸入框，嚴格限制只能選自己班的掃區
-            loginClass = window._loginClass || (document.getElementById('stu-class') ? document.getElementById('stu-class').value.trim() : '');
-        }
         for (let k = 0; k < allAreas.length; k++) {
             const areaItem = allAreas[k];
         
-            // 只顯示自己班 或 000班的掃區
-            if (!loginClass || String(areaItem.class_name) !== loginClass) {
-                continue;
+            let shouldShow = false;
+
+            if (loginClass === '000') {
+                // 000 特殊登入：同時顯示 000 的公共掃區 + 目前畫面上輸入班級的掃區
+                shouldShow = String(areaItem.class_name) === '000' || 
+                             String(areaItem.class_name) === currentInputClass;
+            } else {
+                // 一般班級（如 101）：只顯示自己班級的掃區
+                shouldShow = String(areaItem.class_name) === loginClass;
             }
+
+            // 如果不符合顯示條件，直接跳過，不渲染這個選項
+            if (!shouldShow) continue;
         
             const assignedCount = (regsData || []).filter(r => r.area_id === areaItem.id).length;
             const remainingSpots = areaItem.max_count - assignedCount;
