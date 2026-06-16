@@ -249,6 +249,8 @@ async function switchTab(tab) {
                         // 當手動修改班級文字時，動態同步全域變數，這樣撈資料和驗證才不會出錯
                     await fetchAllocations();
                 };
+            } else {
+                clsField.oninput = null; // 一般班級清空監聽，確保安全
             }
         }
     
@@ -540,7 +542,17 @@ async function fetchAreas() {
         if (!selectElement) return;
 
         let optionsHtml = '';
-        const loginClass = window._loginClass || '';
+        let loginClass = '';
+        
+        if (window._loginClass === '000') {
+            // 狀況 A：如果是 000 學生登入，強制鎖定只撈取 000 班負責的公共掃區
+            // 這樣不論輸入框被改成 112 還是 212，選單都不會消失
+            loginClass = '000';
+        } else {
+            // 狀況 B：其餘一般班級 (101等)，完全維持你原本最原始的邏輯！
+            // 優先讀取最初登入班級，若無則抓取輸入框，嚴格限制只能選自己班的掃區
+            loginClass = window._loginClass || (document.getElementById('stu-class') ? document.getElementById('stu-class').value.trim() : '');
+        }
         for (let k = 0; k < allAreas.length; k++) {
             const areaItem = allAreas[k];
         
