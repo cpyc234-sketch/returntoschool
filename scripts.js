@@ -138,6 +138,22 @@ const ADMIN_HTML = `
             </div>
         </div>
     </div>
+    <div class="bg-white p-6 rounded-3xl border shadow-sm">
+    <h2 class="text-xl font-bold mb-4 text-slate-700">管理系統操作歷史日誌清單</h2>
+    <div class="overflow-x-auto max-h-96">
+        <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b">
+                <tr>
+                    <th class="p-3">操作時間</th>
+                    <th class="p-3">影響範圍</th>
+                    <th class="p-3">動作</th>
+                    <th class="p-3">操作人員身分</th>
+                </tr>
+            </thead>
+            <tbody id="admin-log-list"></tbody>
+        </table>
+    </div>
+</div>
 `;
 
 // 初始化流程：網頁載入完成後，自動抓取公告與掃區資料
@@ -162,6 +178,43 @@ function calculateSid(cls, seat) {
     const seatIndex = parseInt(seat, 10) - 1;
     const calculatedId = baseId + (classIndex * 36) + seatIndex;
     return calculatedId.toString();
+}
+
+/**
+ * 自資料庫取得最新 50 筆系統操作日誌並渲染至管理後台
+ */
+async function fetchSystemLogs() {
+    const { data, error } = await _supabase
+        .from('system_logs')
+        .select('*')
+        .order('changed_at', { ascending: false })
+        .limit(50);
+
+    const logContainer = document.getElementById('admin-log-list');
+    if (!logContainer || error) return;
+
+    if (!data || data.length === 0) {
+        logContainer.innerHTML = '<tr><td colspan="4" class="p-4 text-slate-400 text-center">目前尚無任何系統操作紀錄。</td></tr>';
+        return;
+    }
+
+    let html = '';
+    for (const item of data) {
+        let typeColor = 'text-slate-500';
+        if (item.action_type === '【新增】') typeColor = 'text-emerald-600 font-bold';
+        if (item.action_type === '【修改】') typeColor = 'text-blue-600 font-bold';
+        if (item.action_type === '【刪除】') typeColor = 'text-rose-600 font-bold';
+
+        html += `
+            <tr class="border-b hover:bg-slate-50 transition">
+                <td class="p-3 font-mono text-slate-500">${formatDateTime(item.changed_at)}</td>
+                <td class="p-3 font-bold text-slate-700">${item.table_name} (編號:${item.record_id})</td>
+                <td class="p-3 ${typeColor}">${item.action_type}</td>
+                <td class="p-3 text-slate-500 font-mono">${item.changed_by || '衛生股長或驗證碼操作專員'}</td>
+            </tr>
+        `;
+    }
+    logContainer.innerHTML = html;
 }
 
 /**
@@ -1409,6 +1462,7 @@ async function refreshAdminPanel() {
                 `;
             }
             statusListContainer.innerHTML = statusHtmlContent;
+            await fetchSystemLogs();
         }
 
         // 2. 渲染掃區清單增刪改管理表格
