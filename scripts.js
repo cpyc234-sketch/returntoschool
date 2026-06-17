@@ -35,13 +35,16 @@ const ADMIN_HTML = `
 
         <div class="bg-white p-6 rounded-3xl border shadow-sm">
             <h2 class="text-xl font-bold mb-4 text-amber-600">系統公告發佈管理</h2>
+            <input type="hidden" id="ann-id">
             <div class="grid grid-cols-1 gap-3">
                 <input type="text" id="ann-title" placeholder="請輸入公告標題" class="border p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500">
                 <textarea id="ann-content" placeholder="請輸入公告詳細內容..." class="border p-3 rounded-xl text-sm h-24 outline-none focus:ring-2 focus:ring-amber-500"></textarea>
-                <button onclick="saveAnnouncement()" class="bg-amber-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md self-start hover:bg-amber-600 transition">發佈公告</button>
-            </div>
-            <div id="admin-ann-list" class="mt-4 space-y-2 border-t pt-4">
+                <div class="flex gap-2">
+                    <button id="btn-save-ann" onclick="saveAnnouncement()" class="bg-amber-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-amber-600 transition">發佈公告</button>
+                    <button id="btn-cancel-ann-edit" onclick="cancelEditAnnouncement()" class="hidden bg-slate-200 text-slate-600 px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-300 transition">取消目前編輯</button>
                 </div>
+            </div>
+            <div id="admin-ann-list" class="mt-4 space-y-2 border-t pt-4"></div>
         </div>
 
         <div class="bg-white p-6 rounded-3xl border shadow-sm">
@@ -111,22 +114,20 @@ const ADMIN_HTML = `
                 </table>
             </div>
         </div>
-<div class="bg-white p-6 rounded-3xl border shadow-sm">
-    <h2 class="text-xl font-bold mb-4 text-purple-700">各班衛生股長通行碼設定</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <input type="text" id="cp-class" placeholder="班級 (例如 101)" 
-            class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500">
-        <div class="flex gap-1">
-            <input type="text" id="cp-password" placeholder="設定通行碼" 
-                class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500 flex-grow">
-            <button onclick="generateRandomPassword()" 
-                class="bg-slate-500 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-slate-600 transition" title="隨機產生通行碼">🎲</button>
+
+        <div class="bg-white p-6 rounded-3xl border shadow-sm">
+            <h2 class="text-xl font-bold mb-4 text-purple-700">各班衛生股長通行碼設定</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input type="text" id="cp-class" placeholder="班級 (例如 101)" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500">
+                <div class="flex gap-1">
+                    <input type="text" id="cp-password" placeholder="設定通行碼" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500 flex-grow">
+                    <button onclick="generateRandomPassword()" class="bg-slate-500 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-slate-600 transition" title="隨機產生通行碼">🎲</button>
+                </div>
+                <button onclick="saveClassPassword()" class="bg-purple-600 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-purple-700 transition">儲存通行碼</button>
+            </div>
+            <div id="cp-list" class="mt-4 space-y-2 border-t pt-4"></div>
         </div>
-        <button onclick="saveClassPassword()" 
-            class="bg-purple-600 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-purple-700 transition">儲存通行碼</button>
-    </div>
-    <div id="cp-list" class="mt-4 space-y-2 border-t pt-4"></div>
-</div>
+
         <div class="p-6 bg-rose-50 rounded-3xl border border-rose-200">
             <h3 class="text-lg font-bold text-rose-700 mb-2">系統危險操作區 (資料重設)</h3>
             <p class="text-xs text-rose-600 mb-4">警告：以下操作將永久刪除資料庫中的紀錄，執行前系統將要求輸入驗證碼。</p>
@@ -228,7 +229,7 @@ async function switchTab(tab) {
     
         toggleLoading(true);
         const { data: configData, error } = await _supabase
-                .from('settings') // 請確保這名稱跟你 Supabase 儲存通行碼的資料表一致
+                .from('settings')
                 .select('value')
                 .eq('key', `class_${targetClass}`)
                 .single();
@@ -242,16 +243,14 @@ async function switchTab(tab) {
         const clsField = document.getElementById('stu-class');
         if (clsField) {
             clsField.value = targetClass;
-                // 000班不鎖定唯讀，其餘一般班級鎖定，防止股長幫別班亂填
             clsField.readOnly = targetClass !== '000'; 
             if (targetClass === '000') {
                 clsField.oninput = async () => {
-                        // 當手動修改班級文字時，動態同步全域變數，這樣撈資料和驗證才不會出錯
                     await fetchAreas();
                     await fetchAllocations();
                 };
             } else {
-                clsField.oninput = null; // 一般班級清空監聽，確保安全
+                clsField.oninput = null;
             }
         }
     
@@ -260,10 +259,8 @@ async function switchTab(tab) {
             passcodeField.value = inputPw;
         }
     
-            // 核心：儲存全域變數，確保 handleAllocation 的 verifyRpc 不會失敗
         window._loginClass = targetClass; 
             
-            // 登入成功後，立刻刷新一次該班級的掃區名額與現有登記清單
         await fetchAreas();
         await fetchAllocations();
     }
@@ -273,7 +270,6 @@ async function switchTab(tab) {
         if (!inputPw) return;
 
         toggleLoading(true);
-        // 注意：這裡 RPC 驗證的 key 是 'password' (原本代碼中的糾察密碼 key)
         const isAuthorized = await verifyRpc('password', inputPw);
         toggleLoading(false);
 
@@ -282,18 +278,15 @@ async function switchTab(tab) {
             return;
         }
 
-        // 驗證成功，將密碼填入原本的 inspector-pwd 欄位 (可設為隱藏)
-        // --- 關鍵修正區 ---
         const inspectorField = document.getElementById('inspector-pwd');
         if (inspectorField) {
             inspectorField.value = inputPw;
             console.log("密碼已填入隱藏欄位，準備執行資料抓取");
         } else {
-            // 如果 HTML 還沒渲染出來，這裡會抓不到
             console.error("錯誤：找不到 id='inspector-pwd' 的元素");
         }
     }
-    // 針對管理員分頁進行身分攔截與驗證
+
     if (tab === 'admin') {
         const { data: authData } = await _supabase.auth.getSession();
         if (!authData.session) {
@@ -313,40 +306,34 @@ async function switchTab(tab) {
             }
         }
 
-        // 驗證成功後注入管理員介面 HTML
         const adminView = document.getElementById('view-admin');
         if (adminView && adminView.innerHTML.trim() === "") {
             adminView.innerHTML = ADMIN_HTML;
         }
     }
 
-    // 隱藏所有分頁內容
     const allViews = document.querySelectorAll('.tab-view');
     for (let i = 0; i < allViews.length; i++) {
         allViews[i].classList.add('hidden');
     }
 
-    // 顯示指定的目標分頁
     const targetView = document.getElementById(`view-${tab}`);
     if (targetView) {
         targetView.classList.remove('hidden');
     }
 
-    // 重設導覽列按鈕樣式
     const navButtons = document.querySelectorAll('nav button');
     for (let j = 0; j < navButtons.length; j++) {
         navButtons[j].classList.remove('tab-active', 'text-blue-600', 'border-blue-600');
         navButtons[j].classList.add('text-slate-500', 'border-transparent');
     }
 
-    // 突顯當前選擇的導覽按鈕
     const targetButton = document.getElementById(`tab-${tab}`);
     if (targetButton) {
         targetButton.classList.add('tab-active', 'text-blue-600', 'border-blue-600');
         targetButton.classList.remove('text-slate-500', 'border-transparent');
     }
 
-    // 依據目標分頁觸發對應的資料更新函式
     if (tab === 'query') {
         await fetchAnnouncements();
     } else if (tab === 'allocation') {
@@ -436,7 +423,6 @@ async function handleQueryBySid() {
     const resBox = document.getElementById('query-result');
 
     try {
-        // 第一階段：查詢學生基本資料與班級座號
         const { data: studentDataArr, error: stuError } = await _supabase.rpc('get_student_by_sid', { p_sid: sid });
         const studentData = studentDataArr && studentDataArr.length > 0 ? studentDataArr[0] : null;
 
@@ -446,14 +432,12 @@ async function handleQueryBySid() {
             return;
         }
 
-        // 第二階段：依據班級座號查詢分配紀錄
         const { data: regData } = await _supabase.from('registrations')
             .select('*')
             .eq('class_name', studentData.class_name)
             .eq('seat_number', studentData.seat_number)
             .limit(1);
 
-        // 第三階段：查詢點名簽到退紀錄
         const { data: attData } = await _supabase.from('attendance')
             .select('*')
             .eq('student_id', sid);
@@ -473,7 +457,6 @@ async function handleQueryBySid() {
             currentStatus = currentRegistration.status || '等待糾察覆核中';
         }
 
-        // 渲染結果區塊
         let resultHtml = `
             <div class="flex justify-between items-center mb-4 border-b pb-2">
                 <h3 class="text-lg font-black">${studentData.class_name} 班 ${studentData.seat_number} 號</h3>
@@ -548,19 +531,15 @@ async function fetchAreas() {
         
         for (let k = 0; k < allAreas.length; k++) {
             const areaItem = allAreas[k];
-        
             let shouldShow = false;
 
             if (loginClass === '000') {
-                // 000 特殊登入：同時顯示 000 的公共掃區 + 目前畫面上輸入班級的掃區
                 shouldShow = String(areaItem.class_name) === '000' || 
                              String(areaItem.class_name) === currentInputClass;
             } else {
-                // 一般班級（如 101）：只顯示自己班級的掃區
                 shouldShow = String(areaItem.class_name) === loginClass;
             }
 
-            // 如果不符合顯示條件，直接跳過，不渲染這個選項
             if (!shouldShow) continue;
         
             const assignedCount = (regsData || []).filter(r => r.area_id === areaItem.id).length;
@@ -632,7 +611,7 @@ async function handleAllocation() {
         } else {
             alert("分配作業成功！");
             await fetchAreas();
-            await fetchAllocations(); // 新增
+            await fetchAllocations();
             document.getElementById('stu-seat').value = '';
         }
     } catch (error) {
@@ -652,7 +631,6 @@ async function fetchAllocations() {
     let query = _supabase.from('registrations').select('*');
 
     if (clsValue === '000') {
-        // 000班：查所有登記在000班掃區的紀錄
         const areaIds = allAreas
             .filter(a => String(a.class_name) === '000')
             .map(a => a.id);
@@ -662,7 +640,6 @@ async function fetchAllocations() {
         }
         query = query.in('area_id', areaIds);
     } else {
-        // 一般班級：查該班級的紀錄
         query = query.eq('class_name', clsValue);
     }
 
@@ -689,6 +666,7 @@ async function fetchAllocations() {
     }
     listBox.innerHTML = html;
 }
+
 async function deleteAllocation(regId, regClass) {
     const clsValue = document.getElementById('stu-class').value;
     
@@ -735,8 +713,7 @@ async function fetchRegistrationsByArea() {
             await fetchAreas();
         }
 
-        const { data: registrationsData, error: regsError } = await _supabase.from('registrations')
-            .select('*');
+        const { data: registrationsData, error: regsError } = await _supabase.from('registrations').select('*');
 
         if (regsError) throw regsError;
         toggleLoading(false);
@@ -784,11 +761,10 @@ async function fetchRegistrationsByArea() {
                     ? `${stu.class_name}班${stu.seat_number}號` 
                     : `${stu.seat_number}號`;
                 namesStringArray.push(`<span class="${colorClass}">${displayName}${tag}</span>`);
-                            }
+            }
             const namesDisplay = namesStringArray.join('、');
 
             let actionButtonsHtml = '';
-            // --- 修正重點 1: 參數加上單引號，避免長字串導致 JS 崩潰 ---
             if (group.pendingCount > 0) {
                 actionButtonsHtml = `
                     <button onclick="auditArea('${group.areaData.id}', '合格')" class="bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-600 transition mb-1">批准整區合格</button>
@@ -839,7 +815,6 @@ async function auditArea(areaId, targetStatus) {
     toggleLoading(true);
 
     try {
-        // 2. 呼叫 RPC 進行安全性二次驗證 (Key 為 'password')
         const isAuthorized = await verifyRpc('password', pwdValue);
         if (!isAuthorized) {
             toggleLoading(false);
@@ -857,7 +832,6 @@ async function auditArea(areaId, targetStatus) {
             console.error("批次更新狀態失敗:", updateError);
             alert("資料庫更新失敗，請檢查網路連線。");
         } else {
-            // 4. 更新成功後，重新抓取並渲染覆核清單
             await fetchRegistrationsByArea();
         }
 
@@ -872,9 +846,55 @@ async function auditArea(areaId, targetStatus) {
  * ========================================== */
 
 /**
- * 儲存並發佈新的系統公告
+ * 進入公告資料編輯模式，將選定資料填入表單欄位
+ * @param {number} targetId - 欲編輯的公告資料庫 ID
+ */
+async function editAnnouncement(targetId) {
+    toggleLoading(true);
+    try {
+        const { data: annItem, error } = await _supabase.from('announcements').select('*').eq('id', targetId).single();
+        toggleLoading(false);
+
+        if (error || !annItem) {
+            alert("找不到該篇公告資料。");
+            return;
+        }
+
+        document.getElementById('ann-id').value = annItem.id;
+        document.getElementById('ann-title').value = annItem.title;
+        document.getElementById('ann-content').value = annItem.content;
+
+        const saveBtn = document.getElementById('btn-save-ann');
+        if (saveBtn) saveBtn.innerText = '提交修改公告';
+
+        const cancelBtn = document.getElementById('btn-cancel-ann-edit');
+        if (cancelBtn) cancelBtn.classList.remove('hidden');
+    } catch (err) {
+        toggleLoading(false);
+        console.error("讀取公告發生例外", err);
+    }
+}
+
+/**
+ * 退出公告資料編輯模式，清空表單
+ */
+function cancelEditAnnouncement() {
+    document.getElementById('ann-id').value = '';
+    document.getElementById('ann-title').value = '';
+    document.getElementById('ann-content').value = '';
+
+    const saveBtn = document.getElementById('btn-save-ann');
+    if (saveBtn) saveBtn.innerText = '發佈公告';
+
+    const cancelBtn = document.getElementById('btn-cancel-ann-edit');
+    if (cancelBtn) cancelBtn.classList.add('hidden');
+}
+
+/**
+ * 儲存並發佈或更新系統公告
  */
 async function saveAnnouncement() {
+    const idValue = document.getElementById('ann-id').value;
     const titleElement = document.getElementById('ann-title');
     const contentElement = document.getElementById('ann-content');
     if (!titleElement || !contentElement) return;
@@ -889,19 +909,24 @@ async function saveAnnouncement() {
 
     toggleLoading(true);
     try {
-        const { error } = await _supabase.from('announcements')
-            .insert([{ title: titleStr, content: contentStr }]);
+        const payloadData = { title: titleStr, content: contentStr };
+        let responseObj;
+
+        if (idValue) {
+            responseObj = await _supabase.from('announcements').update(payloadData).eq('id', idValue);
+        } else {
+            responseObj = await _supabase.from('announcements').insert([payloadData]);
+        }
 
         toggleLoading(false);
 
-        if (error) {
-            alert("寫入公告失敗：" + error.message);
+        if (responseObj.error) {
+            alert("儲存公告失敗：" + responseObj.error.message);
         } else {
-            titleElement.value = '';
-            contentElement.value = '';
+            cancelEditAnnouncement();
             await fetchAnnouncements();
             await refreshAdminPanel();
-            alert("系統提示：公告發佈成功。");
+            alert("系統提示：公告儲存成功。");
         }
     } catch (err) {
         toggleLoading(false);
@@ -938,11 +963,9 @@ async function downloadAbsentees() {
 
     toggleLoading(true);
     try {
-        // 抓取全體學生名單
         const { data: allStudents, error: stuErr } = await _supabase.from('students').select('*');
         if (stuErr) throw stuErr;
 
-        // 抓取在該梯次已經有 'check_out' 時間紀錄的學生 ID
         const { data: presentLogs, error: logErr } = await _supabase.from('attendance')
             .select('student_id')
             .eq('session_type', sessionTarget)
@@ -951,13 +974,11 @@ async function downloadAbsentees() {
         if (logErr) throw logErr;
         toggleLoading(false);
 
-        // 將已簽退的學生 ID 轉換為 Set 結構以加速比對效能
         const attendedIdSet = new Set();
         for (let idx = 0; idx < presentLogs.length; idx++) {
             attendedIdSet.add(presentLogs[idx].student_id);
         }
 
-        // 過濾出尚未簽退的學生
         const absenteeList = [];
         for (let idx = 0; idx < allStudents.length; idx++) {
             if (!attendedIdSet.has(allStudents[idx].student_id)) {
@@ -965,14 +986,12 @@ async function downloadAbsentees() {
             }
         }
 
-        // 建立 CSV 內容 (加入 BOM 以支援 Excel 中文顯示)
         let csvString = "\ufeff班級,座號,系統學號,系統角色\n";
         for (let k = 0; k < absenteeList.length; k++) {
             const abs = absenteeList[k];
             csvString += `${abs.class_name},${abs.seat_number},${abs.student_id},${abs.role}\n`;
         }
 
-        // 觸發瀏覽器下載行為
         const blobObject = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
         const anchorElement = document.createElement("a");
         anchorElement.href = URL.createObjectURL(blobObject);
@@ -1008,7 +1027,6 @@ async function loadRollCall() {
     try {
         let queryBuilder = _supabase.from('students').select('*');
 
-        // 判斷是使用學號精確查詢，還是使用班級陣列查詢
         if (inputValue.length >= 6) {
             queryBuilder = queryBuilder.eq('student_id', inputValue);
         } else {
@@ -1101,7 +1119,6 @@ async function doRoll(sid, actionType) {
             payloadObject.check_out = currentTimeString;
         }
 
-        // 使用 upsert 進行資料的新增或更新，透過 student_id 與 session_type 作為衝突判斷基準
         const { error } = await _supabase.from('attendance')
             .upsert(payloadObject, { onConflict: 'student_id, session_type' });
 
@@ -1110,7 +1127,6 @@ async function doRoll(sid, actionType) {
             console.error("寫入點名資料庫失敗", error);
             alert("寫入失敗，請重試。");
         } else {
-            // 寫入成功後自動重載清單以更新畫面時間
             await loadRollCall();
         }
     } catch (err) {
@@ -1119,10 +1135,8 @@ async function doRoll(sid, actionType) {
     }
 }
 
-
 /**
  * 更新單一學生的系統角色權限
- * 修正：直接使用輸入的班級與座號進行資料庫更新，捨棄不穩定的學號推算
  */
 async function saveStudentRole() {
     const classInput = document.getElementById('m-cls').value.trim();
@@ -1136,7 +1150,6 @@ async function saveStudentRole() {
 
     toggleLoading(true);
     try {
-        // 直接使用 class_name 與 seat_number 作為雙重鎖定條件
         const { data, error } = await _supabase.from('students')
             .update({ role: roleSelect })
             .eq('class_name', classInput)
@@ -1150,7 +1163,6 @@ async function saveStudentRole() {
         } else if (!data || data.length === 0) {
             alert("更新無效：資料庫中查無此「班級」與「座號」的學生紀錄，請確認輸入是否正確。");
         } else {
-            // 更新成功，清空座號欄位方便連續輸入
             document.getElementById('m-seat').value = '';
             alert(`系統通知：已成功將 ${classInput} 班 ${seatInput} 號的身分更新為「${roleSelect}」。`);
         }
@@ -1173,7 +1185,6 @@ async function resetAllRoles() {
 
     toggleLoading(true);
     try {
-        // 利用不等於條件進行全表大量更新
         const { error } = await _supabase.from('students')
             .update({ role: '一般學生' })
             .neq('student_id', '0');
@@ -1250,10 +1261,8 @@ async function saveArea() {
 
         let responseObj;
         if (idValue) {
-            // 執行更新指令
             responseObj = await _supabase.from('areas').update(payloadData).eq('id', idValue);
         } else {
-            // 執行插入指令
             responseObj = await _supabase.from('areas').insert([payloadData]);
         }
 
@@ -1332,7 +1341,6 @@ async function handleClearData(targetEntityName) {
 async function refreshAdminPanel() {
     toggleLoading(true);
     try {
-        // 並發請求多個資料表以減少等待時間
         const [areasResponse, regsResponse, annsResponse] = await Promise.all([
             _supabase.from('areas').select('*').order('class_name'),
             _supabase.from('registrations').select('*'),
@@ -1425,7 +1433,7 @@ async function refreshAdminPanel() {
             areaManageContainer.innerHTML = areaManageHtml;
         }
 
-        // 3. 渲染後台公告列表清單
+        // 3. 渲染後台公告列表清單 (已更新：整合呼叫編輯功能)
         const annManageContainer = document.getElementById('admin-ann-list');
         if (annManageContainer) {
             let annManageHtml = '';
@@ -1434,13 +1442,16 @@ async function refreshAdminPanel() {
                 annManageHtml += `
                     <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm mb-2 hover:bg-white transition shadow-sm">
                         <div class="truncate pr-4 flex-grow font-bold text-slate-700">標題：${annItem.title}</div>
-                        <button onclick="deleteAnnouncement(${annItem.id})" class="text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1 rounded-lg text-xs font-bold border border-rose-200 transition">刪除公告</button>
+                        <div class="flex gap-2">
+                            <button onclick="editAnnouncement(${annItem.id})" class="text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold transition">呼叫編輯</button>
+                            <button onclick="deleteAnnouncement(${annItem.id})" class="text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1 rounded-lg text-xs font-bold border border-rose-200 transition">刪除公告</button>
+                        </div>
                     </div>
                 `;
             }
             annManageContainer.innerHTML = annManageHtml;
-            }
-            await loadClassPasswords(); // 加這行
+        }
+        await loadClassPasswords();
     } catch (error) {
         toggleLoading(false);
         console.error("載入管理員面板資料失敗", error);
@@ -1457,32 +1468,27 @@ function toggleLicense(showStatus) {
     if (modalElement) {
         if (showStatus) {
             modalElement.classList.remove('hidden');
-            // 鎖定背景視窗捲動，提升瀏覽體驗
             document.body.style.overflow = 'hidden';
         } else {
             modalElement.classList.add('hidden');
-            // 恢復背景捲動
             document.body.style.overflow = 'auto';
         }
     }
 }
+
 function generateRandomPassword() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
-    const length = Math.floor(Math.random() * 3) + 4; // 隨機 4~6 位
+    const length = Math.floor(Math.random() * 3) + 4; 
     let result = '';
     for (let i = 0; i < length; i++) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    // 自動填入後台的密碼輸入框
     const passwordInput = document.getElementById('cp-password');
     if (passwordInput) {
         passwordInput.value = result;
     }
 }
 
-/**
- * 原有的儲存通行碼函式 (維持不變，僅供對照位置)
- */
 async function saveClassPassword() {
     const cls = document.getElementById('cp-class').value.trim();
     const pwd = document.getElementById('cp-password').value.trim();
