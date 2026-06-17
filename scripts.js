@@ -129,8 +129,8 @@ const ADMIN_HTML = `
         </div>
 
         <div class="p-6 bg-rose-50 rounded-3xl border border-rose-200">
-            <h3 class="text-lg font-bold text-rose-700 mb-2">系統危險操作區 (資料重設)</h3>
-            <p class="text-xs text-rose-600 mb-4">警告：以下操作將永久刪除資料庫中的紀錄，執行前系統將要求輸入驗證碼。</p>
+            <h3 class="text-lg font-bold text-rose-700 mb-2">系統操作區</h3>
+            <p class="text-xs text-rose-600 mb-4">警告：以下操作將永久刪除資料庫中的紀錄。</p>
             <div class="flex flex-wrap gap-2">
                 <button onclick="handleClearData('登記紀錄')" class="bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-rose-600 transition">清空 所有登記紀錄</button>
                 <button onclick="handleClearData('點名紀錄')" class="bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-rose-600 transition">清空 所有點名紀錄</button>
@@ -587,13 +587,13 @@ async function handleAllocation() {
         const selectedArea = allAreas.find(area => String(area.id) === areaIdValue);
         if (!selectedArea) {
             toggleLoading(false);
-            alert("系統錯誤：找不到對應的掃區資料。");
+            alert("找不到對應的掃區資料。");
             return;
         }
 
         if (String(selectedArea.class_name) !== '000' && String(selectedArea.class_name) !== clsValue) {
             toggleLoading(false);
-            alert(`分配限制攔截：所選之掃區僅開放給「${selectedArea.class_name}」班級的學生。`);
+            alert(`所選之掃區僅開放給「${selectedArea.class_name}」班級的學生。`);
             return;
         }
 
@@ -607,7 +607,7 @@ async function handleAllocation() {
 
         toggleLoading(false);
         if (insertError) {
-            alert("寫入失敗：該名學生可能已有紀錄，或名額已滿。");
+            alert("該名學生可能已有紀錄，或名額已滿。");
         } else {
             alert("分配作業成功！");
             await fetchAreas();
@@ -671,7 +671,7 @@ async function deleteAllocation(regId, regClass) {
     const clsValue = document.getElementById('stu-class').value;
     
     if (clsValue !== '000' && String(regClass) !== String(clsValue)) {
-        alert("操作拒絕：只能刪除本班的登記紀錄。");
+        alert("只能刪除本班的登記紀錄。");
         return;
     }
     
@@ -743,7 +743,7 @@ async function fetchRegistrationsByArea() {
         }
 
         if (groupedData.length === 0) {
-            listContainer.innerHTML = '<tr><td class="p-10 text-center text-slate-400">目前全校所有區域皆已完成覆核作業。</td></tr>';
+            listContainer.innerHTML = '<tr><td class="p-10 text-center text-slate-400">目前全校所有區域皆已檢查。</td></tr>';
             return;
         }
 
@@ -808,7 +808,7 @@ async function auditArea(areaId, targetStatus) {
     const pwdValue = inspectorPwField ? inspectorPwField.value : '';
 
     if (!pwdValue) {
-        alert("操作拒絕：尚未取得糾察授權。請重新進入分頁以觸發密碼驗證。");
+        alert("尚未取得授權。");
         return;
     }
 
@@ -818,7 +818,7 @@ async function auditArea(areaId, targetStatus) {
         const isAuthorized = await verifyRpc('password', pwdValue);
         if (!isAuthorized) {
             toggleLoading(false);
-            alert("授權過期或驗證失敗：糾察密碼錯誤，拒絕寫入。");
+            alert("糾察密碼錯誤。");
             return;
         }
 
@@ -1144,7 +1144,7 @@ async function saveStudentRole() {
     const roleSelect = document.getElementById('m-role').value;
 
     if (!classInput || !seatInput) {
-        alert("操作中斷：請填寫目標班級與座號資訊。");
+        alert("請填寫目標班級與座號資訊。");
         return;
     }
 
@@ -1161,10 +1161,10 @@ async function saveStudentRole() {
         if (error) {
             alert("資料庫更新拒絕：" + error.message);
         } else if (!data || data.length === 0) {
-            alert("更新無效：資料庫中查無此「班級」與「座號」的學生紀錄，請確認輸入是否正確。");
+            alert("資料庫中查無此「班級」與「座號」的學生紀錄，請確認輸入是否正確。");
         } else {
             document.getElementById('m-seat').value = '';
-            alert(`系統通知：已成功將 ${classInput} 班 ${seatInput} 號的身分更新為「${roleSelect}」。`);
+            alert(`已成功將 ${classInput} 班 ${seatInput} 號的更新為「${roleSelect}」。`);
         }
     } catch (err) {
         toggleLoading(false);
@@ -1177,9 +1177,9 @@ async function saveStudentRole() {
  * 將系統內所有學生的角色統一重設為「一般學生」
  */
 async function resetAllRoles() {
-    const confirmationText = prompt("重大操作警告：此動作將把全體學生的身分強制覆寫為「一般學生」。若確認執行，請輸入字串 RESET：");
+    const confirmationText = prompt("此動作將把全體學生的身分改寫為「一般學生」。若確認執行，請輸入字串 RESET：");
     if (confirmationText !== 'RESET') {
-        alert("安全機制啟動：輸入字串不符，操作已強制終止。");
+        alert("輸入字串不符，操作已終止。");
         return;
     }
 
@@ -1193,7 +1193,7 @@ async function resetAllRoles() {
         if (error) {
             alert("批次更新失敗：" + error.message);
         } else {
-            alert("執行完畢：全體學生身分已重設。");
+            alert("全體學生身分已重設。");
         }
     } catch (err) {
         toggleLoading(false);
@@ -1247,7 +1247,7 @@ async function saveArea() {
     const maxValue = document.getElementById('a-max').value;
 
     if (!locationValue || !classValue) {
-        alert("欄位檢查未通過：掃區地點與負責班級為必填項目。");
+        alert("掃區地點與負責班級為必填項目。");
         return;
     }
 
@@ -1284,7 +1284,7 @@ async function saveArea() {
  * @param {number} targetId - 欲刪除的掃區資料庫 ID
  */
 async function deleteArea(targetId) {
-    const isConfirmed = confirm('連鎖效應警告：刪除該掃區將會導致依附於此掃區的學生登記紀錄失效。確定仍要繼續執行刪除？');
+    const isConfirmed = confirm('刪除該掃區將會導致此掃區的學生登記紀錄消失。確定刪除？');
     if (!isConfirmed) return;
 
     toggleLoading(true);
@@ -1303,9 +1303,9 @@ async function deleteArea(targetId) {
  * @param {string} targetEntityName - 欲清理的目標識別字串 ('登記紀錄', '點名紀錄', '掃區紀錄')
  */
 async function handleClearData(targetEntityName) {
-    const userPrompt = prompt(`【危險動作驗證程序】\n您正在請求清空全校所有的「${targetEntityName}」。此步驟無法復原。\n請輸入大寫字串 RESET 以解除防護鎖定並執行刪除：`);
+    const userPrompt = prompt(`您正在請求清空所有的「${targetEntityName}」。此步驟無法復原。\n請輸入大寫字串 RESET 以刪除：`);
     if (userPrompt !== 'RESET') {
-        alert("防護機制：授權驗證碼不符，刪除程序已安全中止。");
+        alert("授權驗證碼不符，刪除程序已安全中止。");
         return;
     }
 
@@ -1326,11 +1326,11 @@ async function handleClearData(targetEntityName) {
         }
 
         toggleLoading(false);
-        alert(`系統資料庫回報：指定的 ${targetEntityName} 資料表內容已全數抹除乾淨。`);
+        alert(`${targetEntityName}已全數刪除。`);
         await refreshAdminPanel();
     } catch (err) {
         toggleLoading(false);
-        console.error("執行危險清理作業時失敗", err);
+        console.error("執行作業時失敗", err);
         alert("資料庫刪除作業失敗。");
     }
 }
@@ -1424,7 +1424,7 @@ async function refreshAdminPanel() {
                             <span class="text-blue-600 text-xs ml-2 bg-blue-50 px-2 py-0.5 rounded">指定班級：${aItem.class_name} 班</span>
                         </td>
                         <td class="p-3 text-right">
-                            <button onclick="editArea(${aItem.id})" class="text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1 rounded-lg mr-2 text-xs font-bold transition">呼叫編輯</button>
+                            <button onclick="editArea(${aItem.id})" class="text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1 rounded-lg mr-2 text-xs font-bold transition">編輯</button>
                             <button onclick="deleteArea(${aItem.id})" class="text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1 rounded-lg text-xs font-bold transition">刪除項目</button>
                         </td>
                     </tr>
@@ -1433,7 +1433,7 @@ async function refreshAdminPanel() {
             areaManageContainer.innerHTML = areaManageHtml;
         }
 
-        // 3. 渲染後台公告列表清單 (已更新：整合呼叫編輯功能)
+        // 3. 渲染後台公告列表清單 (已更新：整合編輯功能)
         const annManageContainer = document.getElementById('admin-ann-list');
         if (annManageContainer) {
             let annManageHtml = '';
@@ -1443,7 +1443,7 @@ async function refreshAdminPanel() {
                     <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm mb-2 hover:bg-white transition shadow-sm">
                         <div class="truncate pr-4 flex-grow font-bold text-slate-700">標題：${annItem.title}</div>
                         <div class="flex gap-2">
-                            <button onclick="editAnnouncement(${annItem.id})" class="text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold transition">呼叫編輯</button>
+                            <button onclick="editAnnouncement(${annItem.id})" class="text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1 rounded-lg text-xs font-bold transition">編輯</button>
                             <button onclick="deleteAnnouncement(${annItem.id})" class="text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1 rounded-lg text-xs font-bold border border-rose-200 transition">刪除公告</button>
                         </div>
                     </div>
