@@ -24,122 +24,119 @@ _supabase.auth.onAuthStateChange((event, session) => {
  * 當管理員登入成功後，動態注入至 view-admin 容器中
  */
 const ADMIN_HTML = `
-    <div class="animate-fade space-y-8">
-        <div class="flex justify-between items-center bg-slate-100 p-4 rounded-2xl border border-slate-200">
+<div class="animate-fade space-y-8">
+    <div class="flex justify-between items-center bg-slate-100 p-4 rounded-2xl border border-slate-200">
+        <div class="flex gap-2">
+            <button onclick="downloadAbsentees()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-blue-700 transition">[下載未簽退名單]</button>
+            <button onclick="resetAllRoles()" class="bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-amber-600 transition">[重設全員身分為一般生]</button>
+        </div>
+        <button onclick="handleLogout()" class="text-xs text-rose-500 underline font-bold hover:text-rose-700">[登出管理員身分]</button>
+    </div>
+
+    <div class="bg-white p-6 rounded-3xl border shadow-sm">
+        <h2 class="text-xl font-bold mb-4 text-amber-600">系統公告發佈管理</h2>
+        <input type="hidden" id="ann-id">
+        <div class="grid grid-cols-1 gap-3">
+            <input type="text" id="ann-title" placeholder="請輸入公告標題" class="border p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500">
+            <textarea id="ann-content" placeholder="請輸入公告詳細內容..." class="border p-3 rounded-xl text-sm h-24 outline-none focus:ring-2 focus:ring-amber-500"></textarea>
             <div class="flex gap-2">
-                <button onclick="downloadAbsentees()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-blue-700 transition">[下載未簽退名單]</button>
-                <button onclick="resetAllRoles()" class="bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-amber-600 transition">[重設全員身分為一般生]</button>
-            </div>
-            <button onclick="handleLogout()" class="text-xs text-rose-500 underline font-bold hover:text-rose-700">[登出管理員身分]</button>
-        </div>
-
-        <div class="bg-white p-6 rounded-3xl border shadow-sm">
-            <h2 class="text-xl font-bold mb-4 text-amber-600">系統公告發佈管理</h2>
-            <input type="hidden" id="ann-id">
-            <div class="grid grid-cols-1 gap-3">
-                <input type="text" id="ann-title" placeholder="請輸入公告標題" class="border p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500">
-                <textarea id="ann-content" placeholder="請輸入公告詳細內容..." class="border p-3 rounded-xl text-sm h-24 outline-none focus:ring-2 focus:ring-amber-500"></textarea>
-                <div class="flex gap-2">
-                    <button id="btn-save-ann" onclick="saveAnnouncement()" class="bg-amber-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-amber-600 transition">發佈公告</button>
-                    <button id="btn-cancel-ann-edit" onclick="cancelEditAnnouncement()" class="hidden bg-slate-200 text-slate-600 px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-300 transition">取消目前編輯</button>
-                </div>
-            </div>
-            <div id="admin-ann-list" class="mt-4 space-y-2 border-t pt-4"></div>
-        </div>
-
-        <div class="bg-white p-6 rounded-3xl border shadow-sm">
-            <h2 class="text-xl font-bold mb-4 text-blue-700">全校掃區分配詳情清單</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-50 border-b">
-                        <tr>
-                            <th class="p-4">打掃地點 (負責班級)</th>
-                            <th class="p-4">已分配學生名單與狀態</th>
-                            <th class="p-4 text-center">剩餘名額狀況</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-area-status-list"></tbody>
-                </table>
+                <button id="btn-save-ann" onclick="saveAnnouncement()" class="bg-amber-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-amber-600 transition">發佈公告</button>
+                <button id="btn-cancel-ann-edit" onclick="cancelEditAnnouncement()" class="hidden bg-slate-200 text-slate-600 px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-300 transition">取消目前編輯</button>
             </div>
         </div>
+        <div id="admin-ann-list" class="mt-4 space-y-2 border-t pt-4"></div>
+    </div>
 
-        <div class="bg-white p-6 rounded-3xl border shadow-sm">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b pb-4 gap-4">
-                <h2 class="text-xl font-bold text-slate-800">教師手動點名與簽到退系統</h2>
-                <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                    <select id="roll-session" class="border p-2 rounded-xl text-sm bg-slate-50 font-bold outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="第一次返校">第一次返校</option>
-                        <option value="第二次返校">第二次返校</option>
-                    </select>
-                    <input type="text" id="roll-cls" placeholder="請輸入班級或學號" class="border p-2 rounded-xl text-sm flex-grow outline-none focus:ring-2 focus:ring-blue-500">
-                    <button onclick="loadRollCall()" class="bg-blue-600 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-blue-700 transition">載入名單</button>
-                </div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <tbody id="roll-list"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="bg-white p-6 rounded-3xl border shadow-sm">
-            <h2 class="text-xl font-bold mb-4 text-slate-700">學生權限與糾察身分設定</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <input type="number" id="m-cls" placeholder="學生班級 (例如 101)" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-                <input type="number" id="m-seat" placeholder="學生座號 (例如 1)" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-                <select id="m-role" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-                    <option value="一般學生">一般學生</option>
-                    <option value="衛生糾察">衛生糾察</option>
-                    <option value="環境糾察">環境糾察</option>
-                </select>
-            </div>
-            <button onclick="saveStudentRole()" class="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-emerald-700 transition">更新學生身分</button>
-        </div>
-
-        <div class="bg-white p-6 rounded-3xl border shadow-sm">
-            <h2 class="text-xl font-bold mb-4 font-mono">系統掃區清單設定 (新增/修改/刪除)</h2>
-            <input type="hidden" id="a-id">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
-                <input type="text" id="a-loc" placeholder="掃區地點名稱" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
-                <input type="text" id="a-cls" placeholder="負責班級代碼" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
-                <input type="number" id="a-max" placeholder="需求人數上限" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
-            </div>
-            <div class="flex gap-2">
-                <button id="btn-save-area" onclick="saveArea()" class="bg-slate-800 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-900 transition">儲存掃區資料</button>
-                <button id="btn-cancel-edit" onclick="cancelEditArea()" class="hidden bg-slate-200 text-slate-600 px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-300 transition">取消目前編輯</button>
-            </div>
-            <div class="mt-6 overflow-x-auto">
-                <table class="w-full text-xs text-left">
-                    <tbody id="admin-area-list"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="bg-white p-6 rounded-3xl border shadow-sm">
-            <h2 class="text-xl font-bold mb-4 text-purple-700">各班衛生股長通行碼設定</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <input type="text" id="cp-class" placeholder="班級 (例如 101)" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500">
-                <div class="flex gap-1">
-                    <input type="text" id="cp-password" placeholder="設定通行碼" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500 flex-grow">
-                    <button onclick="generateRandomPassword()" class="bg-slate-500 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-slate-600 transition" title="隨機產生通行碼">🎲</button>
-                </div>
-                <button onclick="saveClassPassword()" class="bg-purple-600 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-purple-700 transition">儲存通行碼</button>
-            </div>
-            <div id="cp-list" class="mt-4 space-y-2 border-t pt-4"></div>
-        </div>
-
-        <div class="p-6 bg-rose-50 rounded-3xl border border-rose-200">
-            <h3 class="text-lg font-bold text-rose-700 mb-2">系統操作區</h3>
-            <p class="text-xs text-rose-600 mb-4">警告：以下操作將永久刪除資料庫中的紀錄。</p>
-            <div class="flex flex-wrap gap-2">
-                <button onclick="handleClearData('登記紀錄')" class="bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-rose-600 transition">清空 所有登記紀錄</button>
-                <button onclick="handleClearData('點名紀錄')" class="bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-rose-600 transition">清空 所有點名紀錄</button>
-                <button onclick="handleClearData('掃區紀錄')" class="bg-rose-800 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-rose-900 transition">清空 所有掃區清單</button>
-            </div>
+    <div class="bg-white p-6 rounded-3xl border shadow-sm">
+        <h2 class="text-xl font-bold mb-4 text-blue-700">全校掃區分配詳情清單</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+                <thead class="bg-slate-50 border-b">
+                    <tr>
+                        <th class="p-4">打掃地點 (負責班級)</th>
+                        <th class="p-4">已分配學生名單與狀態</th>
+                        <th class="p-4 text-center">剩餘名額狀況</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-area-status-list"></tbody>
+            </table>
         </div>
     </div>
+
     <div class="bg-white p-6 rounded-3xl border shadow-sm">
-    
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b pb-4 gap-4">
+            <h2 class="text-xl font-bold text-slate-800">教師手動點名與簽到退系統</h2>
+            <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                <select id="roll-session" class="border p-2 rounded-xl text-sm bg-slate-50 font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="第一次返校">第一次返校</option>
+                    <option value="第二次返校">第二次返校</option>
+                </select>
+                <input type="text" id="roll-cls" placeholder="請輸入班級或學號" class="border p-2 rounded-xl text-sm flex-grow outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="loadRollCall()" class="bg-blue-600 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-blue-700 transition">載入名單</button>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+                <tbody id="roll-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-3xl border shadow-sm">
+        <h2 class="text-xl font-bold mb-4 text-slate-700">學生權限與糾察身分設定</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" id="m-cls" placeholder="學生班級 (例如 101)" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" id="m-seat" placeholder="學生座號 (例如 1)" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+            <select id="m-role" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="一般學生">一般學生</option>
+                <option value="衛生糾察">衛生糾察</option>
+                <option value="環境糾察">環境糾察</option>
+            </select>
+        </div>
+        <button onclick="saveStudentRole()" class="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-emerald-700 transition">更新學生身分</button>
+    </div>
+
+    <div class="bg-white p-6 rounded-3xl border shadow-sm">
+        <h2 class="text-xl font-bold mb-4 font-mono">系統掃區清單設定 (新增/修改/刪除)</h2>
+        <input type="hidden" id="a-id">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
+            <input type="text" id="a-loc" placeholder="掃區地點名稱" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
+            <input type="text" id="a-cls" placeholder="負責班級代碼" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" id="a-max" placeholder="需求人數上限" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
+        </div>
+        <div class="flex gap-2">
+            <button id="btn-save-area" onclick="saveArea()" class="bg-slate-800 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-900 transition">儲存掃區資料</button>
+            <button id="btn-cancel-edit" onclick="cancelEditArea()" class="hidden bg-slate-200 text-slate-600 px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-300 transition">取消目前編輯</button>
+        </div>
+        <div class="mt-6 overflow-x-auto">
+            <table class="w-full text-xs text-left whitespace-nowrap">
+                <tbody id="admin-area-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-3xl border shadow-sm">
+        <h2 class="text-xl font-bold mb-4 text-purple-700">各班衛生股長通行碼設定</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input type="text" id="cp-class" placeholder="班級 (例如 101)" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500">
+            <div class="flex gap-1">
+                <input type="text" id="cp-password" placeholder="設定通行碼" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500 flex-grow">
+                <button onclick="generateRandomPassword()" class="bg-slate-500 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-slate-600 transition" title="隨機產生通行碼">🎲</button>
+            </div>
+            <button onclick="saveClassPassword()" class="bg-purple-600 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-purple-700 transition">儲存通行碼</button>
+        </div>
+        <div id="cp-list" class="mt-4 space-y-2 border-t pt-4"></div>
+    </div>
+
+    <div class="p-6 bg-rose-50 rounded-3xl border border-rose-200">
+        <h3 class="text-lg font-bold text-rose-700 mb-2">系統操作區</h3>
+        <p class="text-xs text-rose-600 mb-4">警告：以下操作將永久刪除資料庫中的紀錄。</p>
+        <div class="flex flex-wrap gap-2">
+            <button onclick="handleClearData('登記紀錄')" class="bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-rose-600 transition">清空 所有登記紀錄</button>
+            <button onclick="handleClearData('點名紀錄')" class="bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-rose-600 transition">清空 所有點名紀錄</button>
+            <button onclick="handleClearData('掃區紀錄')" class="bg-rose-800 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-rose-900 transition">清空 所有掃區清單</button>
+        </div>
+    </div>
 </div>
 `;
 
