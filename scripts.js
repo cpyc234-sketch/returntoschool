@@ -1547,7 +1547,7 @@ async function refreshAdminPanel() {
     } catch (error) {
         toggleLoading(false);
         console.error("載入管理員面板資料失敗", error);
-        alert("儀表板資料同步失敗，部分功能可能無法正常顯示。");
+        alert(`儀表板資料同步失敗：${error?.message || error}`);
     }
 }
 
