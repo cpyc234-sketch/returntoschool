@@ -1500,7 +1500,6 @@ async function refreshAdminPanel() {
                 `;
             }
             statusListContainer.innerHTML = statusHtmlContent;
-            await fetchSystemLogs();
         }
 
         // 2. 渲染掃區清單增刪改管理表格
