@@ -272,13 +272,91 @@ async function verifyRpc(key, input) {
  * 處理網頁分頁切換邏輯，並依據目標分頁載入對應資料
  * @param {string} tab - 目標分頁代碼 ('query', 'allocation', 'inspector', 'admin')
  */
+
+/* ==========================================
+ * 控制工具：Modal 密碼輸入核心
+ * ========================================== */
+
+/**
+ * 開啟密碼驗證 Modal 並等待使用者輸入
+ * @param {string} title - 標題
+ * @param {string} desc - 說明文字
+ * @param {Object} options - 顯示控制設定 { showClass: false, showEmail: false }
+ * @returns {Promise<{success: boolean, password: string, className: string, email: string}>}
+ */
+function openAuthModal(title, desc, options = { showClass: false, showEmail: false }) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('auth-modal');
+        const titleEl = document.getElementById('auth-modal-title');
+        const descEl = document.getElementById('auth-modal-desc');
+        const classField = document.getElementById('auth-modal-class-field');
+        const emailField = document.getElementById('auth-modal-email-field');
+        const classInput = document.getElementById('auth-modal-class');
+        const emailInput = document.getElementById('auth-modal-email');
+        const pwdInput = document.getElementById('auth-modal-input');
+        const submitBtn = document.getElementById('auth-modal-submit');
+
+        // 初始化狀態
+        titleEl.innerText = title;
+        descEl.innerText = desc;
+        pwdInput.value = '';
+        classInput.value = '';
+        emailInput.value = '';
+        
+        // 控制特殊欄位顯隱
+        classField.classList.toggle('hidden', !options.showClass);
+        emailField.classList.toggle('hidden', !options.showEmail);
+
+        modal.classList.remove('hidden');
+        
+        if (options.showEmail) {
+            emailInput.focus();
+        } else if (options.showClass) {
+            classInput.focus();
+        } else {
+            pwdInput.focus();
+        }
+
+        // 確認送出
+        submitBtn.onclick = () => {
+            const password = pwdInput.value.trim();
+            const className = classInput.value.trim();
+            const email = emailInput.value.trim();
+            
+            if (!password || (options.showClass && !className) || (options.showEmail && !email)) {
+                alert("請填寫所有必要欄位。");
+                return;
+            }
+            
+            modal.classList.add('hidden');
+            resolve({ success: true, password, className, email });
+        };
+
+        // 全域取消函數
+        window.closeAuthModal = () => {
+            modal.classList.add('hidden');
+            resolve({ success: false, password: '', className: '', email: '' });
+        };
+    });
+}
+
+
+/* ==========================================
+ * 分頁與狀態控制邏輯 (Navigation & State) - 後台同步全面升級
+ * ========================================== */
+
 async function switchTab(tab) {
     if (tab === 'allocation') {
-        const targetClass = prompt("本頁面僅限衛生股長操作，請輸入您的班級 (例如: 101)：");
-        if (!targetClass) return;
-    
-        const inputPw = prompt(`請輸入 ${targetClass} 班的衛生股長通行碼：`);
-        if (!inputPw) return;
+        const auth = await openAuthModal(
+            "衛生股長登入認證", 
+            "本頁面僅限衛生股長操作，請輸入妳的負責班級與專屬通行碼。",
+            { showClass: true, showEmail: false }
+        );
+        
+        if (!auth.success) return; 
+        
+        const targetClass = auth.className;
+        const inputPw = auth.password;
     
         toggleLoading(true);
         const { data: configData, error } = await _supabase
@@ -319,8 +397,14 @@ async function switchTab(tab) {
     }
     
     if (tab === 'inspector') {
-        const inputPw = prompt("本頁面僅限糾察操作，請輸入糾察授權密碼：");
-        if (!inputPw) return;
+        const auth = await openAuthModal(
+            "糾察授權認證", 
+            "本頁面僅限衛生與環境糾察員操作覆核，請輸入安全防護認證密碼。",
+            { showClass: false, showEmail: false }
+        );
+        
+        if (!auth.success) return;
+        const inputPw = auth.password;
 
         toggleLoading(true);
         const isAuthorized = await verifyRpc('password', inputPw);
@@ -334,23 +418,27 @@ async function switchTab(tab) {
         const inspectorField = document.getElementById('inspector-pwd');
         if (inspectorField) {
             inspectorField.value = inputPw;
-            console.log("密碼已填入隱藏欄位，準備執行資料抓取");
-        } else {
-            console.error("錯誤：找不到 id='inspector-pwd' 的元素");
         }
     }
 
     if (tab === 'admin') {
         const { data: authData } = await _supabase.auth.getSession();
+        
+        // 若管理員尚未取得 Session 授權，改呼叫客製化 Modal 機制
         if (!authData.session) {
-            const email = prompt("系統管理員身分驗證，請輸入註冊的電子郵件：");
-            if (!email) return;
+            const auth = await openAuthModal(
+                "系統管理員身分驗證",
+                "此區塊為學校管理後台，需登入經過授權的電子郵件與密碼方可操作。",
+                { showClass: false, showEmail: true }
+            );
 
-            const pwd = prompt("請輸入系統管理員密碼：");
-            if (!pwd) return;
+            if (!auth.success) return; // 使用者中途按取消
 
             toggleLoading(true);
-            const { error: signInError } = await _supabase.auth.signInWithPassword({ email: email, password: pwd });
+            const { error: signInError } = await _supabase.auth.signInWithPassword({ 
+                email: auth.email, 
+                password: auth.password 
+            });
             toggleLoading(false);
 
             if (signInError) {
@@ -365,6 +453,7 @@ async function switchTab(tab) {
         }
     }
 
+    // --- 分頁顯隱切換與導覽列樣式變更 (維持原邏輯) ---
     const allViews = document.querySelectorAll('.tab-view');
     for (let i = 0; i < allViews.length; i++) {
         allViews[i].classList.add('hidden');
@@ -398,7 +487,6 @@ async function switchTab(tab) {
         await refreshAdminPanel();
     }
 }
-
 /**
  * 處理管理員登出程序
  */
