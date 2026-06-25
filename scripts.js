@@ -150,21 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
  * 通用工具函式 (Utility Functions)
  * ========================================== */
 
-/**
- * 將班級與座號轉換為系統標準學號 (SID)
- * @param {string|number} cls - 班級 (例如 101)
- * @param {string|number} seat - 座號 (例如 1)
- * @returns {string} 計算後的六位數學號
- */
-function calculateSid(cls, seat) {
-    const baseId = 411001;
-    const classIndex = parseInt(cls, 10) - 101;
-    const seatIndex = parseInt(seat, 10) - 1;
-    const calculatedId = baseId + (classIndex * 36) + seatIndex;
-    return calculatedId.toString();
-}
-
-
 function formatDateTime(isoString) {
     if (!isoString) return '尚無紀錄';
     const dateObj = new Date(isoString);
