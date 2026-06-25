@@ -43,7 +43,6 @@
         <header class="text-center mb-10">
             <h1 class="text-4xl font-black text-slate-900 tracking-tight">返校打掃管理系統</h1>
             <p class="text-slate-400 mt-2 text-xs font-mono tracking-widest uppercase">國立陽明交通大學附屬竹北高級中學學務處衛生組</p>
-            <p class="text-rose-700 mt-2 text-xs font-mono tracking-widest uppercase font-bold">警告：透過程式漏洞或任何方式竄改資料觸犯偽造文書罪及妨害電腦使用罪</p>
         </header>
 
         <nav class="flex flex-wrap border-b border-slate-200 mb-8 justify-center gap-2 md:gap-8">
@@ -162,20 +161,15 @@
                 <div>
                     <h2 class="text-xl font-black text-rose-600">區域覆核系統</h2>
                     <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">
-                        ✓ 糾察權限已核可 (Inspector Authorized)
+                        已准許進入覆核功能
                     </p>
                 </div>
-                
-                <div class="text-right">
-                    <span class="text-[10px] bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full font-bold">
-                        免重複輸入模式
-                    </span>
-                </div>
+            
             </div>
         
             <div class="bg-white shadow-xl rounded-[2rem] p-6 border border-slate-100">
                 <div class="flex justify-between items-center mb-6 border-b pb-4">
-                    <h2 class="text-xl font-black">待覆核掃區清單</h2>
+                    <h2 class="text-xl font-black">待確認掃區清單</h2>
                     <button onclick="fetchRegistrationsByArea()"
                         class="text-blue-500 text-xs font-bold bg-blue-50 px-3 py-1.5 rounded-xl hover:bg-blue-100 transition">
                         刷新列表
@@ -220,7 +214,7 @@
             <div class="p-8 overflow-y-auto text-sm leading-relaxed text-slate-600 space-y-6">
                 <section class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
                     <h4 class="font-bold text-slate-700 mb-2">所有權聲明 (Proprietary Rights)</h4>
-                    <p>系統之原始碼、介面設計及資料庫架構均為「國立陽明交大附中軟體研究社」之財產，本產品係專門用於國立陽明交大附中衛生組返校打掃管理用，不得挪作他用。</p>
+                    <p>系統之所有內容均為「國立陽明交大附中軟體研究社」之財產，本系統僅經本社允許後得使用，不得挪作他用。</p>
                 </section>
 
                 <section class="bg-rose-50 p-5 rounded-2xl border border-rose-100">
@@ -228,19 +222,14 @@
                     <p class="text-rose-600">
                         無論任何由使用者洩漏、管理者洩漏且非系統導致，或任何資料庫錯誤，開發者僅作修復但不負責。開發者不保證其資料正確性，如有錯誤自行負責。</p>
                 </section>
-
-                <section class="bg-blue-50 p-5 rounded-2xl border border-blue-100">
-                    <h4 class="font-bold text-blue-700 mb-2">隱私與資料保護</h4>
-                    <p>系統所蒐集之學籍資訊僅供校內返校打掃行政管理之用，不儲存任何敏感資料。存取權限受到限制，非相關人員無法取得紀錄。</p>
-                </section>
-
+                
                 <p class="text-center text-[10px] text-slate-400 italic">All Rights Reserved.</p>
             </div>
 
             <div class="p-6 border-t bg-slate-50 text-center">
                 <button onclick="toggleLicense(false)"
                     class="bg-slate-800 text-white px-12 py-3 rounded-2xl font-bold text-sm hover:bg-slate-900 transition shadow-lg active:scale-95">
-                    我已閱畢並同意以上條款
+                    同意以上條款
                 </button>
             </div>
         </div>
