@@ -34,28 +34,28 @@ const ADMIN_HTML = `
     </div>
 
     <div class="bg-white p-6 rounded-3xl border shadow-sm">
-        <h2 class="text-xl font-bold mb-4 text-amber-600">系統公告發佈管理</h2>
+        <h2 class="text-xl font-bold mb-4 text-amber-600">公告管理</h2>
         <input type="hidden" id="ann-id">
         <div class="grid grid-cols-1 gap-3">
             <input type="text" id="ann-title" placeholder="請輸入公告標題" class="border p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500">
-            <textarea id="ann-content" placeholder="請輸入公告詳細內容..." class="border p-3 rounded-xl text-sm h-24 outline-none focus:ring-2 focus:ring-amber-500"></textarea>
+            <textarea id="ann-content" placeholder="請輸入公告內容..." class="border p-3 rounded-xl text-sm h-24 outline-none focus:ring-2 focus:ring-amber-500"></textarea>
             <div class="flex gap-2">
-                <button id="btn-save-ann" onclick="saveAnnouncement()" class="bg-amber-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-amber-600 transition">發佈公告</button>
-                <button id="btn-cancel-ann-edit" onclick="cancelEditAnnouncement()" class="hidden bg-slate-200 text-slate-600 px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-300 transition">取消目前編輯</button>
+                <button id="btn-save-ann" onclick="saveAnnouncement()" class="bg-amber-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-amber-600 transition">發佈</button>
+                <button id="btn-cancel-ann-edit" onclick="cancelEditAnnouncement()" class="hidden bg-slate-200 text-slate-600 px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-300 transition">取消</button>
             </div>
         </div>
         <div id="admin-ann-list" class="mt-4 space-y-2 border-t pt-4"></div>
     </div>
 
     <div class="bg-white p-6 rounded-3xl border shadow-sm">
-        <h2 class="text-xl font-bold mb-4 text-blue-700">全校掃區分配詳情清單</h2>
+        <h2 class="text-xl font-bold mb-4 text-blue-700">全校掃區分配清單</h2>
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm whitespace-nowrap">
                 <thead class="bg-slate-50 border-b">
                     <tr>
                         <th class="p-4">打掃地點 (負責班級)</th>
                         <th class="p-4">已分配學生名單與狀態</th>
-                        <th class="p-4 text-center">剩餘名額狀況</th>
+                        <th class="p-4 text-center">剩餘名額</th>
                     </tr>
                 </thead>
                 <tbody id="admin-area-status-list"></tbody>
@@ -97,12 +97,12 @@ const ADMIN_HTML = `
     </div>
 
     <div class="bg-white p-6 rounded-3xl border shadow-sm">
-        <h2 class="text-xl font-bold mb-4 font-mono">系統掃區清單設定 (新增/修改/刪除)</h2>
+        <h2 class="text-xl font-bold mb-4 font-mono">系統掃區清單設定</h2>
         <input type="hidden" id="a-id">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
-            <input type="text" id="a-loc" placeholder="掃區地點名稱" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
-            <input type="text" id="a-cls" placeholder="負責班級代碼" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
-            <input type="text" inputmode="numeric" pattern="[0-9]*" id="a-max" placeholder="需求人數上限" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
+            <input type="text" id="a-loc" placeholder="掃區名稱" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
+            <input type="text" id="a-cls" placeholder="班級代碼" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" id="a-max" placeholder="人數上限" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800">
         </div>
         <div class="flex gap-2">
             <button id="btn-save-area" onclick="saveArea()" class="bg-slate-800 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-900 transition">儲存掃區資料</button>
@@ -116,7 +116,7 @@ const ADMIN_HTML = `
     </div>
 
     <div class="bg-white p-6 rounded-3xl border shadow-sm">
-        <h2 class="text-xl font-bold mb-4 text-purple-700">各班衛生股長通行碼設定</h2>
+        <h2 class="text-xl font-bold mb-4 text-purple-700">衛生股長通行碼設定</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <input type="text" id="cp-class" placeholder="班級 (例如 101)" class="border p-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500">
             <div class="flex gap-1">
@@ -130,7 +130,7 @@ const ADMIN_HTML = `
 
     <div class="p-6 bg-rose-50 rounded-3xl border border-rose-200">
         <h3 class="text-lg font-bold text-rose-700 mb-2">系統操作區</h3>
-        <p class="text-xs text-rose-600 mb-4">警告：以下操作將永久刪除資料庫中的紀錄。</p>
+        <p class="text-xs text-rose-600 mb-4">以下操作將永久刪除資料庫中的紀錄。</p>
         <div class="flex flex-wrap gap-2">
             <button onclick="handleClearData('登記紀錄')" class="bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-rose-600 transition">清空 所有登記紀錄</button>
             <button onclick="handleClearData('點名紀錄')" class="bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-rose-600 transition">清空 所有點名紀錄</button>
@@ -164,11 +164,7 @@ function calculateSid(cls, seat) {
     return calculatedId.toString();
 }
 
-/**
- * 將 ISO 格式的時間字串格式化為易讀的日期時間
- * @param {string} isoString - 資料庫回傳的時間字串
- * @returns {string} 格式化後的時間 (YYYY/MM/DD HH:MM)
- */
+
 function formatDateTime(isoString) {
     if (!isoString) return '尚無紀錄';
     const dateObj = new Date(isoString);
@@ -180,10 +176,6 @@ function formatDateTime(isoString) {
     return `${year}/${month}/${day} ${hours}:${minutes}`;
 }
 
-/**
- * 控制全局讀取動畫的顯示與隱藏
- * @param {boolean} show - true 為顯示，false 為隱藏
- */
 function toggleLoading(show) {
     const spinner = document.getElementById('loading-spinner');
     if (spinner) {
@@ -191,12 +183,6 @@ function toggleLoading(show) {
     }
 }
 
-/**
- * 呼叫 Supabase 後端 RPC 函式以進行安全驗證
- * @param {string} key - 欲驗證的設定鍵值 (例如 'password')
- * @param {string} input - 使用者輸入的字串
- * @returns {Promise<boolean>} 驗證是否成功
- */
 async function verifyRpc(key, input) {
     try {
         const { data, error } = await _supabase.rpc('verify_config', { p_key: key, p_input: input });
@@ -211,26 +197,6 @@ async function verifyRpc(key, input) {
     }
 }
 
-/* ==========================================
- * 分頁與狀態控制邏輯 (Navigation & State)
- * ========================================== */
-
-/**
- * 處理網頁分頁切換邏輯，並依據目標分頁載入對應資料
- * @param {string} tab - 目標分頁代碼 ('query', 'allocation', 'inspector', 'admin')
- */
-
-/* ==========================================
- * 控制工具：Modal 密碼輸入核心
- * ========================================== */
-
-/**
- * 開啟密碼驗證 Modal 並等待使用者輸入
- * @param {string} title - 標題
- * @param {string} desc - 說明文字
- * @param {Object} options - 顯示控制設定 { showClass: false, showEmail: false }
- * @returns {Promise<{success: boolean, password: string, className: string, email: string}>}
- */
 function openAuthModal(title, desc, options = { showClass: false, showEmail: false }) {
     return new Promise((resolve) => {
         const modal = document.getElementById('auth-modal');
@@ -287,16 +253,11 @@ function openAuthModal(title, desc, options = { showClass: false, showEmail: fal
     });
 }
 
-
-/* ==========================================
- * 分頁與狀態控制邏輯 (Navigation & State) - 後台同步全面升級
- * ========================================== */
-
 async function switchTab(tab) {
     if (tab === 'allocation') {
         const auth = await openAuthModal(
             "衛生股長登入認證", 
-            "本頁面僅限衛生股長操作，請輸入妳的負責班級與專屬通行碼。",
+            "本頁面僅限衛生股長操作，請輸入負責班級與通行碼。",
             { showClass: true, showEmail: false }
         );
         
@@ -315,7 +276,7 @@ async function switchTab(tab) {
         toggleLoading(false);
     
         if (error || !configData || configData.value !== inputPw) {
-                alert("授權失敗：班級或股長通行碼輸入錯誤！");
+                alert("通行碼輸入錯誤！");
                 return; 
         }
         const clsField = document.getElementById('stu-class');
@@ -345,8 +306,8 @@ async function switchTab(tab) {
     
     if (tab === 'inspector') {
         const auth = await openAuthModal(
-            "糾察授權認證", 
-            "本頁面僅限衛生與環境糾察員操作覆核，請輸入安全防護認證密碼。",
+            "糾察認證", 
+            "本頁面僅限衛生糾察員操作覆核，請輸入密碼。",
             { showClass: false, showEmail: false }
         );
         
@@ -358,7 +319,7 @@ async function switchTab(tab) {
         toggleLoading(false);
 
         if (!isAuthorized) {
-            alert("驗證失敗：糾察密碼錯誤。");
+            alert("糾察密碼錯誤。");
             return;
         }
 
@@ -371,7 +332,6 @@ async function switchTab(tab) {
     if (tab === 'admin') {
         const { data: authData } = await _supabase.auth.getSession();
         
-        // 若管理員尚未取得 Session 授權，改呼叫客製化 Modal 機制
         if (!authData.session) {
             const auth = await openAuthModal(
                 "系統管理員身分驗證",
@@ -389,7 +349,7 @@ async function switchTab(tab) {
             toggleLoading(false);
 
             if (signInError) {
-                alert("驗證拒絕：電子郵件或密碼輸入錯誤，請重新嘗試。");
+                alert("電子郵件或密碼輸入錯誤，請重新嘗試。");
                 return;
             }
         }
@@ -438,7 +398,7 @@ async function switchTab(tab) {
  * 處理管理員登出程序
  */
 async function handleLogout() {
-    const isConfirmed = confirm("即將登出系統管理員身分並鎖定後台，確定執行？");
+    const isConfirmed = confirm("即將登出系統管理員身分，確定執行？");
     if (!isConfirmed) return;
 
     try {
@@ -473,7 +433,7 @@ async function fetchAnnouncements() {
         if (!board) return;
 
         if (!data || data.length === 0) {
-            board.innerHTML = '<p class="text-center text-slate-400 py-6 text-sm col-span-full">系統目前尚無任何公告事項發佈。</p>';
+            board.innerHTML = '<p class="text-center text-slate-400 py-6 text-sm col-span-full">尚無任何公告。</p>';
             return;
         }
 
@@ -503,7 +463,7 @@ async function handleQueryBySid() {
 
     const sid = sidInput.value.trim();
     if (sid.length < 6) {
-        alert("格式錯誤：請輸入完整的六位數字學號。");
+        alert("請輸入正確學號。");
         return;
     }
 
@@ -516,7 +476,7 @@ async function handleQueryBySid() {
 
         if (stuError || !studentData) {
             toggleLoading(false);
-            alert("查無結果：資料庫中找不到此學號，請確認輸入無誤。");
+            alert("學號不存在。");
             return;
         }
 
@@ -542,7 +502,7 @@ async function handleQueryBySid() {
             if (matchedArea) {
                 assignedLocation = matchedArea.location;
             }
-            currentStatus = currentRegistration.status || '等待糾察覆核中';
+            currentStatus = currentRegistration.status || '等待覆核中';
         }
 
         let resultHtml = `
@@ -644,7 +604,7 @@ async function fetchAreas() {
     } catch (error) {
         toggleLoading(false);
         console.error("載入掃區資料庫失敗:", error);
-        alert("無法取得最新掃區名額資料，請重整網頁。");
+        alert("無法取得最新掃區名額資料。");
     }
 }
 
@@ -658,7 +618,7 @@ async function handleAllocation() {
     const passcodeValue = document.getElementById('alloc-passcode').value;
 
     if (!clsValue || !seatValue || !areaIdValue) {
-        alert("操作拒絕：請完整填寫班級與座號。");
+        alert("：請完整填寫班級與座號。");
         return;
     }
 
@@ -668,7 +628,7 @@ async function handleAllocation() {
         const isAuthorized = await verifyRpc(`class_${window._loginClass}`, passcodeValue);
         if (!isAuthorized) {
             toggleLoading(false);
-            alert("授權過期或通行碼錯誤，請重新整理網頁後登入。");
+            alert("授權過期或通行碼錯誤。");
             return;
         }
 
@@ -681,7 +641,7 @@ async function handleAllocation() {
 
         if (String(selectedArea.class_name) !== '000' && String(selectedArea.class_name) !== clsValue) {
             toggleLoading(false);
-            alert(`所選之掃區僅開放給「${selectedArea.class_name}」班級的學生。`);
+            alert(`此掃區僅開放給「${selectedArea.class_name}」班學生。`);
             return;
         }
 
@@ -723,7 +683,7 @@ async function fetchAllocations() {
             .filter(a => String(a.class_name) === '000')
             .map(a => a.id);
         if (areaIds.length === 0) {
-            listBox.innerHTML = '<p class="text-xs text-slate-400 text-center py-3">目前尚無登記紀錄。</p>';
+            listBox.innerHTML = '<p class="text-xs text-slate-400 text-center py-3">尚無登記紀錄。</p>';
             return;
         }
         query = query.in('area_id', areaIds);
@@ -991,7 +951,7 @@ async function saveAnnouncement() {
     const contentStr = contentElement.value.trim();
 
     if (!titleStr) {
-        alert("發佈失敗：公告標題不得為空白。");
+        alert("公告標題不得為空白。");
         return;
     }
 
