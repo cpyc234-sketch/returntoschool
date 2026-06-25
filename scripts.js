@@ -418,9 +418,6 @@ async function handleLogout() {
  * 第一頁：公告查詢系統 (Tab: Query)
  * ========================================== */
 
-/**
- * 自資料庫取得最新公告並渲染至首頁
- */
 async function fetchAnnouncements() {
     try {
         const { data, error } = await _supabase.from('announcements')
@@ -443,17 +440,26 @@ async function fetchAnnouncements() {
             htmlContent += `
                 <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm animate-fade">
                     <h4 class="font-black text-slate-800 mb-1 leading-tight">[公告] ${item.title}</h4>
-                    <p class="text-sm text-slate-500 whitespace-pre-wrap">${item.content}</p>
+                    <div class="text-sm text-slate-500">${item.content}</div>
                     <div class="text-[10px] text-slate-300 mt-3 font-mono uppercase">發佈時間：${formatDateTime(item.created_at)}</div>
                 </div>
             `;
         }
         board.innerHTML = htmlContent;
+
+        const scripts = board.getElementsByTagName('script');
+        for (let j = 0; j < scripts.length; j++) {
+            const scriptNode = document.createElement('script');
+            if (scripts[j].src) scriptNode.src = scripts[j].src;
+            scriptNode.textContent = scripts[j].textContent;
+            
+            document.head.appendChild(scriptNode).parentNode.removeChild(scriptNode);
+        }
+
     } catch (error) {
         console.error("取得公告清單失敗:", error);
     }
 }
-
 /**
  * 處理學生透過學號查詢個人打掃紀錄的邏輯
  */
