@@ -963,7 +963,6 @@ async function saveAnnouncement() {
             alert("儲存公告失敗：" + responseObj.error.message);
         } else {
             cancelEditAnnouncement();
-            await fetchAnnouncements();
             await refreshAdminPanel();
             alert("系統提示：公告儲存成功。");
         }
