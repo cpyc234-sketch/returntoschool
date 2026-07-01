@@ -14,6 +14,11 @@ const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let allAreas = [];
 let isAdminAuthenticated = false;
 
+// 全域保留驗證憑證，避免重複跳窗
+window._loginClass = '';
+window._loginClassPassword = '';
+window._inspectorPassword = '';
+
 // 監聽身分驗證狀態變化
 _supabase.auth.onAuthStateChange((event, session) => {
     isAdminAuthenticated = !!session;
@@ -240,78 +245,100 @@ function openAuthModal(title, desc, options = { showClass: false, showEmail: fal
 
 async function switchTab(tab) {
     if (tab === 'allocation') {
-        const auth = await openAuthModal(
-            "衛生股長登入認證", 
-            "本頁面僅限衛生股長操作，請輸入負責班級與通行碼。",
-            { showClass: true, showEmail: false }
-        );
-        
-        if (!auth.success) return; 
-        
-        const targetClass = auth.className;
-        const inputPw = auth.password;
-    
-        toggleLoading(true);
-        const { data: configData, error } = await _supabase
-                .from('settings')
-                .select('value')
-                .eq('key', `class_${targetClass}`)
-                .single();
+        let targetClass = window._loginClass;
+        let inputPw = window._loginClassPassword;
+
+        // 若無快取憑證，才跳出窗要求輸入
+        if (!targetClass || !inputPw) {
+            const auth = await openAuthModal(
+                "衛生股長登入認證", 
+                "本頁面僅限衛生股長操作，請輸入負責班級與通行碼。",
+                { showClass: true, showEmail: false }
+            );
             
-        toggleLoading(false);
-    
-        if (error || !configData || configData.value !== inputPw) {
+            if (!auth.success) return; 
+            
+            targetClass = auth.className;
+            inputPw = auth.password;
+        
+            toggleLoading(true);
+            const { data: configData, error } = await _supabase
+                    .from('settings')
+                    .select('value')
+                    .eq('key', `class_${targetClass}`)
+                    .single();
+                
+            toggleLoading(false);
+        
+            if (error || !configData || configData.value !== inputPw) {
                 alert("通行碼輸入錯誤！");
                 return; 
-        }
-        const clsField = document.getElementById('stu-class');
-        if (clsField) {
-            clsField.value = targetClass;
-            clsField.readOnly = targetClass !== '000'; 
-            if (targetClass === '000') {
-                clsField.oninput = async () => {
-                    await fetchAreas();
-                    await fetchAllocations();
-                };
-            } else {
-                clsField.oninput = null;
             }
+
+            // 驗證成功，存入快取變數中
+            window._loginClass = targetClass;
+            window._loginClassPassword = inputPw;
         }
-    
-        const passcodeField = document.getElementById('alloc-passcode');
-        if (passcodeField) {
-            passcodeField.value = inputPw;
-        }
-    
-        window._loginClass = targetClass; 
+        
+        // 確保 DOM 已渲染完畢再填值
+        setTimeout(() => {
+            const clsField = document.getElementById('stu-class');
+            if (clsField) {
+                clsField.value = targetClass;
+                clsField.readOnly = targetClass !== '000'; 
+                if (targetClass === '000') {
+                    clsField.oninput = async () => {
+                        await fetchAreas();
+                        await fetchAllocations();
+                    };
+                } else {
+                    clsField.oninput = null;
+                }
+            }
+        
+            const passcodeField = document.getElementById('alloc-passcode');
+            if (passcodeField) {
+                passcodeField.value = inputPw;
+            }
+        }, 50);
             
         await fetchAreas();
         await fetchAllocations();
     }
     
     if (tab === 'inspector') {
-        const auth = await openAuthModal(
-            "糾察認證", 
-            "本頁面僅限衛生糾察員操作覆核，請輸入密碼。",
-            { showClass: false, showEmail: false }
-        );
-        
-        if (!auth.success) return;
-        const inputPw = auth.password;
+        let inputPw = window._inspectorPassword;
 
-        toggleLoading(true);
-        const isAuthorized = await verifyRpc('password', inputPw);
-        toggleLoading(false);
+        // 若無快取密碼，才進行驗證彈窗
+        if (!inputPw) {
+            const auth = await openAuthModal(
+                "糾察認證", 
+                "本頁面僅限衛生糾察員操作覆核，請輸入密碼。",
+                { showClass: false, showEmail: false }
+            );
+            
+            if (!auth.success) return;
+            inputPw = auth.password;
 
-        if (!isAuthorized) {
-            alert("糾察密碼錯誤。");
-            return;
+            toggleLoading(true);
+            const isAuthorized = await verifyRpc('password', inputPw);
+            toggleLoading(false);
+
+            if (!isAuthorized) {
+                alert("糾察密碼錯誤。");
+                return;
+            }
+
+            // 驗證成功，保留快取密碼
+            window._inspectorPassword = inputPw;
         }
 
-        const inspectorField = document.getElementById('inspector-pwd');
-        if (inspectorField) {
-            inspectorField.value = inputPw;
-        }
+        setTimeout(() => {
+            const inspectorField = document.getElementById('inspector-pwd');
+            if (inspectorField) {
+                inspectorField.value = inputPw;
+            }
+        }, 50);
     }
 
     if (tab === 'admin') {
@@ -324,7 +351,7 @@ async function switchTab(tab) {
                 { showClass: false, showEmail: true }
             );
 
-            if (!auth.success) return; // 使用者中途按取消
+            if (!auth.success) return; 
 
             toggleLoading(true);
             const { error: signInError } = await _supabase.auth.signInWithPassword({ 
@@ -345,7 +372,7 @@ async function switchTab(tab) {
         }
     }
 
-    // --- 分頁顯隱切換與導覽列樣式變更 (維持原邏輯) ---
+    // --- 分頁顯隱切換與導覽列樣式變更 ---
     const allViews = document.querySelectorAll('.tab-view');
     for (let i = 0; i < allViews.length; i++) {
         allViews[i].classList.add('hidden');
@@ -541,9 +568,6 @@ async function handleQueryBySid() {
  * 第二頁：掃區分配系統 (Tab: Allocation)
  * ========================================== */
 
-/**
- * 自資料庫取得全校掃區清單，計算剩餘名額並渲染至下拉選單
- */
 async function fetchAreas() {
     toggleLoading(true);
     try {
@@ -599,9 +623,6 @@ async function fetchAreas() {
     }
 }
 
-/**
- * 處理衛生股長提交掃區分配的請求
- */
 async function handleAllocation() {
     const clsValue = document.getElementById('stu-class').value;
     const seatValue = document.getElementById('stu-seat').value;
@@ -742,9 +763,6 @@ async function deleteAllocation(regId, regClass) {
  * 第三頁：區域覆核系統 (Tab: Inspector)
  * ========================================== */
 
-/**
- * 取得待覆核資料，並依據掃區進行群組化渲染
- */
 async function fetchRegistrationsByArea() {
     toggleLoading(true);
     try {
@@ -837,11 +855,6 @@ async function fetchRegistrationsByArea() {
     }
 }
 
-/**
- * 批次更新指定區域內所有學生的審核狀態
- * @param {number} areaId - 掃區的資料庫 ID
- * @param {string} targetStatus - 欲更新的狀態字串 ('合格' 或是 '需重掃')
- */
 async function auditArea(areaId, targetStatus) {
     const inspectorPwField = document.getElementById('inspector-pwd');
     const pwdValue = inspectorPwField ? inspectorPwField.value : '';
@@ -884,10 +897,6 @@ async function auditArea(areaId, targetStatus) {
  * 第四頁：管理後台功能 (Tab: Admin)
  * ========================================== */
 
-/**
- * 進入公告資料編輯模式，將選定資料填入表單欄位
- * @param {number} targetId - 欲編輯的公告資料庫 ID
- */
 async function editAnnouncement(targetId) {
     toggleLoading(true);
     try {
@@ -914,9 +923,6 @@ async function editAnnouncement(targetId) {
     }
 }
 
-/**
- * 退出公告資料編輯模式，清空表單
- */
 function cancelEditAnnouncement() {
     document.getElementById('ann-id').value = '';
     document.getElementById('ann-title').value = '';
@@ -929,9 +935,6 @@ function cancelEditAnnouncement() {
     if (cancelBtn) cancelBtn.classList.add('hidden');
 }
 
-/**
- * 儲存並發佈或更新系統公告
- */
 async function saveAnnouncement() {
     const idValue = document.getElementById('ann-id').value;
     const titleElement = document.getElementById('ann-title');
@@ -972,10 +975,6 @@ async function saveAnnouncement() {
     }
 }
 
-/**
- * 根據 ID 刪除指定的系統公告
- * @param {number} announcementId - 公告的資料庫 ID
- */
 async function deleteAnnouncement(announcementId) {
     const isConfirmed = confirm("確定要永久刪除此篇公告訊息嗎？");
     if (!isConfirmed) return;
@@ -992,9 +991,6 @@ async function deleteAnnouncement(announcementId) {
     }
 }
 
-/**
- * 比對全校名單與點名紀錄，產生並下載未簽退學生的 CSV 檔案
- */
 async function downloadAbsentees() {
     const sessionTarget = prompt("請輸入欲匯出名單的目標梯次名稱 (例如：第一次返校)：", "第一次返校");
     if (!sessionTarget) return;
@@ -1020,7 +1016,7 @@ async function downloadAbsentees() {
         const absenteeList = [];
         for (let idx = 0; idx < allStudents.length; idx++) {
             if (!attendedIdSet.has(allStudents[idx].student_id)) {
-                absenteeList.push(allStudents[idx]);
+                absenceList.push(allStudents[idx]);
             }
         }
 
@@ -1045,9 +1041,6 @@ async function downloadAbsentees() {
     }
 }
 
-/**
- * 根據輸入條件(班級或學號)載入學生清單以供手動點名操作
- */
 async function loadRollCall() {
     const inputElement = document.getElementById('roll-cls');
     const sessionElement = document.getElementById('roll-session');
@@ -1130,11 +1123,6 @@ async function loadRollCall() {
     }
 }
 
-/**
- * 執行紀錄單一學生的簽到或簽退時間
- * @param {string} sid - 學生標準學號
- * @param {string} actionType - 'in' 代表簽到，'out' 代表簽退
- */
 async function doRoll(sid, actionType) {
     const sessionElement = document.getElementById('roll-session');
     if (!sessionElement) return;
@@ -1173,9 +1161,6 @@ async function doRoll(sid, actionType) {
     }
 }
 
-/**
- * 更新單一學生的系統角色權限
- */
 async function saveStudentRole() {
     const classInput = document.getElementById('m-cls').value.trim();
     const seatInput = document.getElementById('m-seat').value.trim();
@@ -1211,9 +1196,6 @@ async function saveStudentRole() {
     }
 }
 
-/**
- * 將系統內所有學生的角色統一重設為「一般學生」
- */
 async function resetAllRoles() {
     const confirmationText = prompt("此動作將把全體學生的身分改寫為「一般學生」。若確認執行，請輸入字串 RESET：");
     if (confirmationText !== 'RESET') {
@@ -1239,10 +1221,6 @@ async function resetAllRoles() {
     }
 }
 
-/**
- * 進入掃區資料編輯模式，將選定資料填入表單欄位
- * @param {number} targetId - 欲編輯的掃區資料庫 ID
- */
 function editArea(targetId) {
     const targetArea = allAreas.find(item => item.id === targetId);
     if (!targetArea) return;
@@ -1259,9 +1237,6 @@ function editArea(targetId) {
     if (cancelBtn) cancelBtn.classList.remove('hidden');
 }
 
-/**
- * 退出掃區資料編輯模式，清空表單
- */
 function cancelEditArea() {
     document.getElementById('a-id').value = '';
     document.getElementById('a-loc').value = '';
@@ -1275,9 +1250,6 @@ function cancelEditArea() {
     if (cancelBtn) cancelBtn.classList.add('hidden');
 }
 
-/**
- * 儲存掃區表單的變更 (包含新增與修改邏輯)
- */
 async function saveArea() {
     const idValue = document.getElementById('a-id').value;
     const locationValue = document.getElementById('a-loc').value;
@@ -1317,10 +1289,6 @@ async function saveArea() {
     }
 }
 
-/**
- * 刪除指定的掃區項目
- * @param {number} targetId - 欲刪除的掃區資料庫 ID
- */
 async function deleteArea(targetId) {
     const isConfirmed = confirm('刪除該掃區將會導致此掃區的學生登記紀錄消失。確定刪除？');
     if (!isConfirmed) return;
@@ -1336,10 +1304,6 @@ async function deleteArea(targetId) {
     }
 }
 
-/**
- * 處理危險資料庫清理作業 (透過使用者輸入字串確認)
- * @param {string} targetEntityName - 欲清理的目標識別字串 ('登記紀錄', '點名紀錄', '掃區紀錄')
- */
 async function handleClearData(targetEntityName) {
     const userPrompt = prompt(`您正在請求清空所有的「${targetEntityName}」。此步驟無法復原。\n請輸入大寫字串 RESET 以刪除：`);
     if (userPrompt !== 'RESET') {
@@ -1373,9 +1337,6 @@ async function handleClearData(targetEntityName) {
     }
 }
 
-/**
- * 重新載入並渲染管理員面板內的所有統計資料與管理表格
- */
 async function refreshAdminPanel() {
     toggleLoading(true);
     try {
@@ -1471,7 +1432,7 @@ async function refreshAdminPanel() {
             areaManageContainer.innerHTML = areaManageHtml;
         }
 
-        // 3. 渲染後台公告列表清單 (已更新：整合編輯功能)
+        // 3. 渲染後台公告列表清單
         const annManageContainer = document.getElementById('admin-ann-list');
         if (annManageContainer) {
             let annManageHtml = '';
@@ -1497,10 +1458,6 @@ async function refreshAdminPanel() {
     }
 }
 
-/**
- * 控制條款與免責聲明 Modal 視窗的顯示狀態
- * @param {boolean} showStatus - true 為顯示 Modal，false 為關閉
- */
 function toggleLicense(showStatus) {
     const modalElement = document.getElementById('license-modal');
     if (modalElement) {
