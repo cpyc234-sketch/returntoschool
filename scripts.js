@@ -42,7 +42,10 @@ const ADMIN_HTML = `
         <h2 class="text-xl font-bold mb-4 text-amber-600">公告管理</h2>
         <input type="hidden" id="ann-id">
         <div class="grid grid-cols-1 gap-3">
-            <input type="text" id="ann-title" placeholder="請輸入公告標題" class="border p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <input type="text" id="ann-title" placeholder="請輸入公告標題" class="border p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500">
+                <input type="text" id="ann-author" placeholder="請輸入發布單位 (例如：學務處衛生組)" class="border p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
             <textarea id="ann-content" placeholder="請輸入公告內容..." class="border p-3 rounded-xl text-sm h-24 outline-none focus:ring-2 focus:ring-amber-500"></textarea>
             <div class="flex gap-2">
                 <button id="btn-save-ann" onclick="saveAnnouncement()" class="bg-amber-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-amber-600 transition">發佈</button>
@@ -449,10 +452,11 @@ async function fetchAnnouncements() {
         let htmlContent = '';
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
+            const authorTag = item.author ? `<span class="bg-amber-50 text-amber-700 px-2 py-0.5 rounded text-[11px] font-bold ml-2">${item.author}</span>` : '';
             htmlContent += `
                 <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm animate-fade">
-                    <h4 class="font-black text-slate-800 mb-1 leading-tight">[公告] ${item.title}</h4>
-                    <div class="text-sm text-slate-500">${item.content}</div>
+                    <h4 class="font-black text-slate-800 mb-1 leading-tight">[公告] ${item.title} ${authorTag}</h4>
+                    <div class="text-sm text-slate-500 mt-2">${item.content}</div>
                     <div class="text-[10px] text-slate-300 mt-3 font-mono uppercase">發佈時間：${formatDateTime(item.created_at)}</div>
                 </div>
             `;
@@ -464,7 +468,6 @@ async function fetchAnnouncements() {
             const scriptNode = document.createElement('script');
             if (scripts[j].src) scriptNode.src = scripts[j].src;
             scriptNode.textContent = scripts[j].textContent;
-            
             document.head.appendChild(scriptNode).parentNode.removeChild(scriptNode);
         }
 
@@ -472,6 +475,7 @@ async function fetchAnnouncements() {
         console.error("取得公告清單失敗:", error);
     }
 }
+
 /**
  * 處理學生透過學號查詢個人打掃紀錄的邏輯
  */
@@ -910,6 +914,7 @@ async function editAnnouncement(targetId) {
 
         document.getElementById('ann-id').value = annItem.id;
         document.getElementById('ann-title').value = annItem.title;
+        document.getElementById('ann-author').value = annItem.author || ''; // 填入發布單位
         document.getElementById('ann-content').value = annItem.content;
 
         const saveBtn = document.getElementById('btn-save-ann');
@@ -926,6 +931,7 @@ async function editAnnouncement(targetId) {
 function cancelEditAnnouncement() {
     document.getElementById('ann-id').value = '';
     document.getElementById('ann-title').value = '';
+    document.getElementById('ann-author').value = ''; // 清空發布單位
     document.getElementById('ann-content').value = '';
 
     const saveBtn = document.getElementById('btn-save-ann');
@@ -938,10 +944,12 @@ function cancelEditAnnouncement() {
 async function saveAnnouncement() {
     const idValue = document.getElementById('ann-id').value;
     const titleElement = document.getElementById('ann-title');
+    const authorElement = document.getElementById('ann-author');
     const contentElement = document.getElementById('ann-content');
     if (!titleElement || !contentElement) return;
 
     const titleStr = titleElement.value.trim();
+    const authorStr = authorElement ? authorElement.value.trim() : '';
     const contentStr = contentElement.value.trim();
 
     if (!titleStr) {
@@ -951,7 +959,7 @@ async function saveAnnouncement() {
 
     toggleLoading(true);
     try {
-        const payloadData = { title: titleStr, content: contentStr };
+        const payloadData = { title: titleStr, author: authorStr, content: contentStr };
         let responseObj;
 
         if (idValue) {
