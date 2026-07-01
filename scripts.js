@@ -166,7 +166,9 @@ function formatDateTime(isoString) {
     const day = String(dateObj.getDate()).padStart(2, '0');
     const hours = String(dateObj.getHours()).padStart(2, '0');
     const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-    return `${year}/${month}/${day} ${hours}:${minutes}`;
+    const seconds = String(dateObj.getSeconds()).padStart(2, '0'); // 擷取秒數
+    
+    return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`; // 增加 :秒 輸出
 }
 
 function toggleLoading(show) {
