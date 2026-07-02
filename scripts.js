@@ -267,13 +267,20 @@ async function switchTab(tab) {
             inputPw = auth.password;
         
             toggleLoading(true);
+
+            // 確保完全使用 SDK，它會自動幫妳補上 apikey 請求標頭
             const { data: configData, error } = await _supabase
                     .from('settings')
                     .select('value')
                     .eq('key', `class_${targetClass}`)
-                    .single();
-                
+                    .maybeSingle(); // 使用 maybeSingle 避免找不到資料時噴出嚴重錯誤
+            
             toggleLoading(false);
+            
+            if (error || !configData || configData.value !== inputPw) {
+                alert("通行碼輸入錯誤或該班級尚未設定！");
+                return; 
+            }
         
             if (error || !configData || configData.value !== inputPw) {
                 alert("通行碼輸入錯誤！");
