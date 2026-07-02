@@ -267,23 +267,15 @@ async function switchTab(tab) {
             inputPw = auth.password;
         
             toggleLoading(true);
-
-            // 確保完全使用 SDK，它會自動幫妳補上 apikey 請求標頭
-            const { data: configData, error } = await _supabase
-                    .from('settings')
-                    .select('value')
-                    .eq('key', `class_${targetClass}`)
-                    .maybeSingle(); // 使用 maybeSingle 避免找不到資料時噴出嚴重錯誤
+            
+            // 💡 改成跟糾察一樣，直接呼叫 RPC 進行後端驗證
+            const isAuthorized = await verifyRpc(`class_${targetClass}`, inputPw);
             
             toggleLoading(false);
-            
-            if (error || !configData || configData.value !== inputPw) {
-                alert("通行碼輸入錯誤或該班級尚未設定！");
-                return; 
-            }
         
-            if (error || !configData || configData.value !== inputPw) {
-                alert("通行碼輸入錯誤！");
+            // 如果後端回傳 false，代表密碼錯了或找不到該班級
+            if (!isAuthorized) {
+                alert("通行碼輸入錯誤或該班級尚未設定！");
                 return; 
             }
 
