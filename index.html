@@ -206,11 +206,9 @@
         class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div
             class="bg-white rounded-[2rem] max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl animate-fade">
-            <div class="p-6 border-b flex justify-between items-center bg-slate-50">
+            <div class="p-6 border-b bg-slate-50">
                 <h3 class="font-black text-slate-800">系統使用協議與授權聲明</h3>
-                <button onclick="toggleLicense(false)"
-                    class="text-slate-400 text-3xl leading-none hover:text-slate-600 transition">&times;</button>
-            </div>
+                </div>
 
             <div class="p-8 overflow-y-auto text-sm leading-relaxed text-slate-600 space-y-6">
                 <section class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
@@ -227,13 +225,18 @@
                 <p class="text-center text-[10px] text-slate-400 italic">All Rights Reserved.</p>
             </div>
 
-            <div class="p-6 border-t bg-slate-50 text-center">
-                <button onclick="toggleLicense(false)"
-                    class="bg-slate-800 text-white px-12 py-3 rounded-2xl font-bold text-sm hover:bg-slate-900 transition shadow-lg active:scale-95">
+            <div class="p-6 border-t bg-slate-50 flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="handleRejectLicense()"
+                    class="w-full sm:w-auto bg-slate-200 text-slate-600 px-8 py-3 rounded-2xl font-bold text-sm hover:bg-slate-300 transition active:scale-95">
+                    不同意並退出
+                </button>
+                <button onclick="handleAcceptLicense()"
+                    class="w-full sm:w-auto bg-slate-800 text-white px-12 py-3 rounded-2xl font-bold text-sm hover:bg-slate-900 transition shadow-lg active:scale-95">
                     同意以上條款
                 </button>
             </div>
         </div>
+    </div>
     </div>
 </body>
 
