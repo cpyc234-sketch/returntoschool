@@ -148,10 +148,16 @@ const ADMIN_HTML = `
 </div>
 `;
 
-// 初始化流程：網頁載入完成後，自動抓取公告與掃區資料
+// 初始化流程：網頁載入完成後，驗證授權狀態
 document.addEventListener('DOMContentLoaded', () => {
-    fetchAnnouncements();
-    fetchAreas();
+    const hasAgreed = localStorage.getItem('has_agreed_license');
+    
+    if (hasAgreed === 'true') {
+        fetchAnnouncements();
+        fetchAreas();
+    } else {
+        toggleLicense(true);
+    }
 });
 
 /* ==========================================
@@ -1473,11 +1479,35 @@ function toggleLicense(showStatus) {
         if (showStatus) {
             modalElement.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
+            
+            // 🔒 額外防護：移除動態關閉按鈕或背景點擊關閉的功能，迫使使用者必須點擊按鈕
         } else {
             modalElement.classList.add('hidden');
             document.body.style.overflow = 'auto';
         }
     }
+}
+
+/**
+ * 使用者按下「我同意」按鈕時觸發的函式
+ * 請將此函式綁定到授權視窗中「同意」按鈕的 onclick 事件上
+ */
+function handleAcceptLicense() {
+    localStorage.setItem('has_agreed_license', 'true');
+    
+    toggleLicense(false);
+    
+    fetchAnnouncements();
+    fetchAreas();
+    
+    alert("歡迎使用返校打掃管理系統。");
+}
+
+/**
+ */
+function handleRejectLicense() {
+    alert("必須同意授權條款方可使用本系統。");
+    window.location.reload();
 }
 
 function generateRandomPassword() {
