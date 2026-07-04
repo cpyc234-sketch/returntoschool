@@ -148,16 +148,10 @@ const ADMIN_HTML = `
 </div>
 `;
 
-// 初始化流程：網頁載入完成後，驗證授權狀態
+// 初始化流程：網頁載入完成後，自動抓取公告與掃區資料
 document.addEventListener('DOMContentLoaded', () => {
-    const hasAgreed = localStorage.getItem('has_agreed_license');
-    
-    if (hasAgreed === 'true') {
-        fetchAnnouncements();
-        fetchAreas();
-    } else {
-        toggleLicense(true);
-    }
+    fetchAnnouncements();
+    fetchAreas();
 });
 
 /* ==========================================
@@ -173,7 +167,7 @@ function formatDateTime(isoString) {
     const hours = String(dateObj.getHours()).padStart(2, '0');
     const minutes = String(dateObj.getMinutes()).padStart(2, '0');
     const seconds = String(dateObj.getSeconds()).padStart(2, '0'); // 擷取秒數
-    
+
     return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`; // 增加 :秒 輸出
 }
 
@@ -216,13 +210,13 @@ function openAuthModal(title, desc, options = { showClass: false, showEmail: fal
         pwdInput.value = '';
         classInput.value = '';
         emailInput.value = '';
-        
+
         // 控制特殊欄位顯隱
         classField.classList.toggle('hidden', !options.showClass);
         emailField.classList.toggle('hidden', !options.showEmail);
 
         modal.classList.remove('hidden');
-        
+
         if (options.showEmail) {
             emailInput.focus();
         } else if (options.showClass) {
@@ -236,12 +230,12 @@ function openAuthModal(title, desc, options = { showClass: false, showEmail: fal
             const password = pwdInput.value.trim();
             const className = classInput.value.trim();
             const email = emailInput.value.trim();
-            
+
             if (!password || (options.showClass && !className) || (options.showEmail && !email)) {
                 alert("請填寫所有必要欄位。");
                 return;
             }
-            
+
             modal.classList.add('hidden');
             resolve({ success: true, password, className, email });
         };
@@ -262,48 +256,40 @@ async function switchTab(tab) {
         // 若無快取憑證，才跳出窗要求輸入
         if (!targetClass || !inputPw) {
             const auth = await openAuthModal(
-                "衛生股長登入認證", 
+                "衛生股長登入認證",
                 "本頁面僅限衛生股長操作，請輸入負責班級與通行碼。",
                 { showClass: true, showEmail: false }
             );
-            
-            if (!auth.success) return; 
-            
+
+            if (!auth.success) return;
+
             targetClass = auth.className;
             inputPw = auth.password;
-        
+
             toggleLoading(true);
 
-            // 確保完全使用 SDK，它會自動幫妳補上 apikey 請求標頭
-            const { data: configData, error } = await _supabase
-                    .from('settings')
-                    .select('value')
-                    .eq('key', `class_${targetClass}`)
-                    .maybeSingle(); // 使用 maybeSingle 避免找不到資料時噴出嚴重錯誤
-            
+            // 💡 改成跟糾察一樣，直接呼叫 RPC 進行後端驗證
+            const isAuthorized = await verifyRpc(`class_${targetClass}`, inputPw);
+
             toggleLoading(false);
-            
-            if (error || !configData || configData.value !== inputPw) {
+
+            // 如果後端回傳 false，代表密碼錯了或找不到該班級
+            if (!isAuthorized) {
                 alert("通行碼輸入錯誤或該班級尚未設定！");
-                return; 
-            }
-        
-            if (error || !configData || configData.value !== inputPw) {
-                alert("通行碼輸入錯誤！");
-                return; 
+                return;
             }
 
             // 驗證成功，存入快取變數中
             window._loginClass = targetClass;
             window._loginClassPassword = inputPw;
         }
-        
+
         // 確保 DOM 已渲染完畢再填值
         setTimeout(() => {
             const clsField = document.getElementById('stu-class');
             if (clsField) {
                 clsField.value = targetClass;
-                clsField.readOnly = targetClass !== '000'; 
+                clsField.readOnly = targetClass !== '000';
                 if (targetClass === '000') {
                     clsField.oninput = async () => {
                         await fetchAreas();
@@ -313,28 +299,28 @@ async function switchTab(tab) {
                     clsField.oninput = null;
                 }
             }
-        
+
             const passcodeField = document.getElementById('alloc-passcode');
             if (passcodeField) {
                 passcodeField.value = inputPw;
             }
         }, 50);
-            
+
         await fetchAreas();
         await fetchAllocations();
     }
-    
+
     if (tab === 'inspector') {
         let inputPw = window._inspectorPassword;
 
         // 若無快取密碼，才進行驗證彈窗
         if (!inputPw) {
             const auth = await openAuthModal(
-                "糾察認證", 
+                "糾察認證",
                 "本頁面僅限衛生糾察員操作覆核，請輸入密碼。",
                 { showClass: false, showEmail: false }
             );
-            
+
             if (!auth.success) return;
             inputPw = auth.password;
 
@@ -361,7 +347,7 @@ async function switchTab(tab) {
 
     if (tab === 'admin') {
         const { data: authData } = await _supabase.auth.getSession();
-        
+
         if (!authData.session) {
             const auth = await openAuthModal(
                 "系統管理員身分驗證",
@@ -369,12 +355,12 @@ async function switchTab(tab) {
                 { showClass: false, showEmail: true }
             );
 
-            if (!auth.success) return; 
+            if (!auth.success) return;
 
             toggleLoading(true);
-            const { error: signInError } = await _supabase.auth.signInWithPassword({ 
-                email: auth.email, 
-                password: auth.password 
+            const { error: signInError } = await _supabase.auth.signInWithPassword({
+                email: auth.email,
+                password: auth.password
             });
             toggleLoading(false);
 
@@ -610,27 +596,27 @@ async function fetchAreas() {
         let optionsHtml = '';
         const loginClass = window._loginClass || '';
         const currentInputClass = document.getElementById('stu-class')?.value.trim() || '';
-        
+
         for (let k = 0; k < allAreas.length; k++) {
             const areaItem = allAreas[k];
             let shouldShow = false;
 
             if (loginClass === '000') {
-                shouldShow = String(areaItem.class_name) === '000' || 
-                             String(areaItem.class_name) === currentInputClass;
+                shouldShow = String(areaItem.class_name) === '000' ||
+                    String(areaItem.class_name) === currentInputClass;
             } else {
                 shouldShow = String(areaItem.class_name) === loginClass;
             }
 
             if (!shouldShow) continue;
-        
+
             const assignedCount = (regsData || []).filter(r => r.area_id === areaItem.id).length;
             const remainingSpots = areaItem.max_count - assignedCount;
             const isFullyBooked = remainingSpots <= 0;
-        
+
             const disableAttr = isFullyBooked ? 'disabled' : '';
             const statusText = isFullyBooked ? '已無名額' : `尚餘 ${remainingSpots} 個名額`;
-        
+
             optionsHtml += `<option value="${areaItem.id}" ${disableAttr}>[${areaItem.class_name}班負責] ${areaItem.location} (狀態：${statusText})</option>`;
         }
         selectElement.innerHTML = optionsHtml;
@@ -748,12 +734,12 @@ async function fetchAllocations() {
 
 async function deleteAllocation(regId, regClass) {
     const clsValue = document.getElementById('stu-class').value;
-    
+
     if (clsValue !== '000' && String(regClass) !== String(clsValue)) {
         alert("只能刪除本班的登記紀錄。");
         return;
     }
-    
+
     const isConfirmed = confirm("確定要刪除此筆登記紀錄嗎？");
     if (!isConfirmed) return;
 
@@ -833,8 +819,8 @@ async function fetchRegistrationsByArea() {
                 const isPass = stu.status === '合格';
                 const colorClass = isPass ? 'text-emerald-600 font-bold' : 'text-slate-500';
                 const tag = stu.status === '需重掃' ? '(被標記重掃)' : '';
-                const displayName = String(group.areaData.class_name) === '000' 
-                    ? `${stu.class_name}班${stu.seat_number}號` 
+                const displayName = String(group.areaData.class_name) === '000'
+                    ? `${stu.class_name}班${stu.seat_number}號`
                     : `${stu.seat_number}號`;
                 namesStringArray.push(`<span class="${colorClass}">${displayName}${tag}</span>`);
             }
@@ -1487,8 +1473,6 @@ function toggleLicense(showStatus) {
         if (showStatus) {
             modalElement.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
-            
-            // 🔒 額外防護：移除動態關閉按鈕或背景點擊關閉的功能，迫使使用者必須點擊按鈕
         } else {
             modalElement.classList.add('hidden');
             document.body.style.overflow = 'auto';
@@ -1496,31 +1480,9 @@ function toggleLicense(showStatus) {
     }
 }
 
-/**
- * 使用者按下「我同意」按鈕時觸發的函式
- * 請將此函式綁定到授權視窗中「同意」按鈕的 onclick 事件上
- */
-function handleAcceptLicense() {
-    localStorage.setItem('has_agreed_license', 'true');
-    
-    toggleLicense(false);
-    
-    fetchAnnouncements();
-    fetchAreas();
-    
-    alert("歡迎使用返校打掃管理系統。");
-}
-
-/**
- */
-function handleRejectLicense() {
-    alert("必須同意授權條款方可使用本系統。");
-    window.location.reload();
-}
-
 function generateRandomPassword() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
-    const length = Math.floor(Math.random() * 3) + 4; 
+    const length = Math.floor(Math.random() * 3) + 4;
     let result = '';
     for (let i = 0; i < length; i++) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));

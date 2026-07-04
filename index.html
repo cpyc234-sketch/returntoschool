@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
- 
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,34 +12,40 @@
 </head>
 
 <body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col font-sans">
-    <div id="auth-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade">
-    <div class="bg-white p-6 rounded-3xl border shadow-xl max-w-sm w-full mx-4 space-y-4">
-        <h3 id="auth-modal-title" class="text-lg font-black text-slate-800">身分安全驗證</h3>
-        <p id="auth-modal-desc" class="text-xs text-slate-500 leading-relaxed"></p>
-        
-        <div class="space-y-3">
-            <div id="auth-modal-class-field" class="hidden">
-                <label class="text-xs font-bold text-slate-600 block mb-1">負責班級</label>
-                <input type="text" id="auth-modal-class" placeholder="例如：101" class="w-full border p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold">
+    <div id="auth-modal"
+        class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade">
+        <div class="bg-white p-6 rounded-3xl border shadow-xl max-w-sm w-full mx-4 space-y-4">
+            <h3 id="auth-modal-title" class="text-lg font-black text-slate-800">身分安全驗證</h3>
+            <p id="auth-modal-desc" class="text-xs text-slate-500 leading-relaxed"></p>
+
+            <div class="space-y-3">
+                <div id="auth-modal-class-field" class="hidden">
+                    <label class="text-xs font-bold text-slate-600 block mb-1">負責班級</label>
+                    <input type="text" id="auth-modal-class" placeholder="例如：101"
+                        class="w-full border p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold">
+                </div>
+
+                <div id="auth-modal-email-field" class="hidden">
+                    <label class="text-xs font-bold text-slate-600 block mb-1">管理員電子郵件</label>
+                    <input type="email" id="auth-modal-email" placeholder="example@email.com"
+                        class="w-full border p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                </div>
+
+                <div>
+                    <label id="auth-modal-pwd-label" class="text-xs font-bold text-slate-600 block mb-1">認證密碼</label>
+                    <input type="password" id="auth-modal-input" placeholder="請輸入密碼"
+                        class="w-full border p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                </div>
             </div>
 
-            <div id="auth-modal-email-field" class="hidden">
-                <label class="text-xs font-bold text-slate-600 block mb-1">管理員電子郵件</label>
-                <input type="email" id="auth-modal-email" placeholder="example@email.com" class="w-full border p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeAuthModal()"
+                    class="w-1/3 bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-200 transition">取消</button>
+                <button id="auth-modal-submit"
+                    class="w-2/3 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-blue-700 transition">確認送出</button>
             </div>
-            
-            <div>
-                <label id="auth-modal-pwd-label" class="text-xs font-bold text-slate-600 block mb-1">認證密碼</label>
-                <input type="password" id="auth-modal-input" placeholder="請輸入密碼" class="w-full border p-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-mono">
-            </div>
-        </div>
-
-        <div class="flex gap-2 pt-2">
-            <button onclick="closeAuthModal()" class="w-1/3 bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-200 transition">取消</button>
-            <button id="auth-modal-submit" class="w-2/3 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-blue-700 transition">確認送出</button>
         </div>
     </div>
-</div>
     <div class="max-w-6xl mx-auto py-10 px-4 flex-grow w-full">
         <header class="text-center mb-10">
             <h1 class="text-4xl font-black text-slate-900 tracking-tight">返校打掃管理系統</h1>
@@ -49,13 +55,13 @@
         <nav class="flex flex-wrap border-b border-slate-200 mb-8 justify-center gap-2 md:gap-8">
             <button onclick="switchTab('query')" id="tab-query"
                 class="tab-active py-2 px-4 font-bold border-blue-600 text-blue-600 transition duration-300">公告查詢</button>
-            
+
             <button onclick="void switchTab('allocation')" id="tab-allocation"
                 class="py-2 px-4 font-bold text-slate-500 border-transparent border-b-2 transition duration-300">掃區分配</button>
-            
+
             <button onclick="void switchTab('inspector')" id="tab-inspector"
                 class="py-2 px-4 font-bold text-slate-500 border-transparent border-b-2 transition duration-300">區域覆核</button>
-            
+
             <button onclick="void switchTab('admin')" id="tab-admin"
                 class="py-2 px-4 font-bold text-slate-500 border-transparent border-b-2 transition duration-300">管理後台</button>
         </nav>
@@ -64,14 +70,17 @@
         <section id="view-query" class="tab-view space-y-8 animate-fade">
             <div id="bulletin-board" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             </div>
-        
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <a href="https://line.me/ti/g2/3K4ju-CEfez6H1voKW1nO7VmIwNWM2ckzVVLhA?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank" 
+                <a href="https://line.me/ti/g2/3K4ju-CEfez6H1voKW1nO7VmIwNWM2ckzVVLhA?utm_source=invitation&utm_medium=link_copy&utm_campaign=default"
+                    target="_blank"
                     class="group flex items-center justify-between bg-emerald-50 p-6 rounded-[2.5rem] border border-emerald-100 shadow-sm hover:shadow-md transition-all duration-300 active:scale-[0.98]">
                     <div class="flex items-center gap-4">
                         <div class="bg-emerald-500 text-white p-3 rounded-2xl shadow-lg shadow-emerald-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
                             </svg>
                         </div>
                         <div>
@@ -81,13 +90,16 @@
                     </div>
                     <span class="text-emerald-400 group-hover:translate-x-1 transition-transform">→</span>
                 </a>
-        
-                <a href="https://drive.google.com/file/d/1tGr72_H9ZR-N1yilLsJmfe0-SzXKX774/view?usp=sharing" target="_blank"
+
+                <a href="https://drive.google.com/file/d/1tGr72_H9ZR-N1yilLsJmfe0-SzXKX774/view?usp=sharing"
+                    target="_blank"
                     class="group flex items-center justify-between bg-blue-50 p-6 rounded-[2.5rem] border border-blue-100 shadow-sm hover:shadow-md transition-all duration-300 active:scale-[0.98]">
                     <div class="flex items-center gap-4">
                         <div class="bg-blue-600 text-white p-3 rounded-2xl shadow-lg shadow-blue-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                             </svg>
                         </div>
                         <div>
@@ -98,7 +110,7 @@
                     <span class="text-blue-400 group-hover:translate-x-1 transition-transform">→</span>
                 </a>
             </div>
-        
+
             <div class="bg-slate-200/50 rounded-[2.5rem] p-8 text-center border border-slate-200 shadow-inner">
                 <div class="max-w-md mx-auto">
                     <h2 class="text-xl font-black mb-4">查詢個人打掃狀態</h2>
@@ -122,22 +134,22 @@
                     <h2 class="text-2xl font-black text-slate-800">掃區任務分配</h2>
                     <p class="text-xs text-amber-600 mt-1 font-bold">本頁面僅限衛生股長操作，需通行碼授權。</p>
                 </div>
-        
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">Class Name</label>
                         <input type="number" id="stu-class" placeholder="班級" onchange="fetchAllocations()"
                             class="w-full border p-4 rounded-2xl bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-        
+
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">Seat Number</label>
                         <input type="number" id="stu-seat" placeholder="座號"
                             class="w-full border p-4 rounded-2xl bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-        
+
                     <input type="password" id="alloc-passcode" class="hidden">
-        
+
                     <div class="md:col-span-2 space-y-1">
                         <label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">Target Area</label>
                         <select id="stu-area"
@@ -157,7 +169,7 @@
 
         <section id="view-inspector" class="tab-view hidden space-y-4 animate-fade">
             <input type="hidden" id="inspector-pwd">
-        
+
             <div class="bg-white shadow-lg rounded-2xl p-6 border border-slate-100 flex justify-between items-center">
                 <div>
                     <h2 class="text-xl font-black text-rose-600">區域覆核系統</h2>
@@ -165,9 +177,9 @@
                         已准許進入覆核功能
                     </p>
                 </div>
-            
+
             </div>
-        
+
             <div class="bg-white shadow-xl rounded-[2rem] p-6 border border-slate-100">
                 <div class="flex justify-between items-center mb-6 border-b pb-4">
                     <h2 class="text-xl font-black">待確認掃區清單</h2>
@@ -179,7 +191,7 @@
                 <div class="overflow-x-auto hide-scrollbar">
                     <table class="w-full text-left text-sm">
                         <tbody id="inspector-list">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -206,9 +218,11 @@
         class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div
             class="bg-white rounded-[2rem] max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl animate-fade">
-            <div class="p-6 border-b bg-slate-50">
+            <div class="p-6 border-b flex justify-between items-center bg-slate-50">
                 <h3 class="font-black text-slate-800">系統使用協議與授權聲明</h3>
-                </div>
+                <button onclick="toggleLicense(false)"
+                    class="text-slate-400 text-3xl leading-none hover:text-slate-600 transition">&times;</button>
+            </div>
 
             <div class="p-8 overflow-y-auto text-sm leading-relaxed text-slate-600 space-y-6">
                 <section class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
@@ -221,17 +235,13 @@
                     <p class="text-rose-600">
                         無論任何由使用者洩漏、管理者洩漏且非系統導致，或任何資料庫錯誤，開發者僅作修復但不負責。開發者不保證其資料正確性，如有錯誤自行負責。</p>
                 </section>
-                
+
                 <p class="text-center text-[10px] text-slate-400 italic">All Rights Reserved.</p>
             </div>
 
-            <div class="p-6 border-t bg-slate-50 flex flex-col sm:flex-row gap-3 justify-center">
-                <button onclick="handleRejectLicense()"
-                    class="w-full sm:w-auto bg-slate-200 text-slate-600 px-8 py-3 rounded-2xl font-bold text-sm hover:bg-slate-300 transition active:scale-95">
-                    不同意並退出
-                </button>
-                <button onclick="handleAcceptLicense()"
-                    class="w-full sm:w-auto bg-slate-800 text-white px-12 py-3 rounded-2xl font-bold text-sm hover:bg-slate-900 transition shadow-lg active:scale-95">
+            <div class="p-6 border-t bg-slate-50 text-center">
+                <button onclick="toggleLicense(false)"
+                    class="bg-slate-800 text-white px-12 py-3 rounded-2xl font-bold text-sm hover:bg-slate-900 transition shadow-lg active:scale-95">
                     同意以上條款
                 </button>
             </div>
