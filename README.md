@@ -132,10 +132,10 @@ For questions or suggestions, please contact the system administrator.
 Email: cpsd6th@gmail.com
 
 ## Maintainer
-* [@chupei-software-development](https://github.com) - Owner
-* [@August980422](https://github.com) - Developer/Maintainer
-* [@294Ryan](https://github.com) - Maintainer
-* [@cpyc234-sketch](https://github.com) - Operator
+* [@chupei-software-development](https://github.com/@chupei-software-development) - Owner
+* [@August980422](https://github.com/@August980422) - Developer/Maintainer
+* [@294Ryan](https://github.com/@294Ryan) - Maintainer
+* [@cpyc234-sketch](https://github.com/@cpyc234-sketch) - Operator
 
 ---
 
