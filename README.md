@@ -133,7 +133,7 @@ Email: cpsd6th@gmail.com
 
 ## Maintainer
 * [@chupei-software-development](https://github.com/chupei-software-development) - Owner
-* [@August980422](https://github.com/August980422) - Developer/Maintainer
+* [@422August](https://github.com/422August) - Developer/Maintainer
 * [@294Ryan](https://github.com/294Ryan) - Maintainer
 * [@cpyc234-sketch](https://github.com/cpyc234-sketch) - Operator
 
