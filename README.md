@@ -124,7 +124,7 @@ A: Administrators can click the "Download Absent Sign-out List" button in the ba
 
 ## License
 
-This project is licensed under GPLv3. See [LICENSE.md](LICENSE.md) for details.
+This project is licensed under GPLv3. See [LICENSE](LICENSE) for details.
 
 ## Contact
 
