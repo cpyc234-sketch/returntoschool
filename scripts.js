@@ -1025,7 +1025,7 @@ async function downloadAbsentees() {
         const absenteeList = [];
         for (let idx = 0; idx < allStudents.length; idx++) {
             if (!attendedIdSet.has(allStudents[idx].student_id)) {
-                absenceList.push(allStudents[idx]);
+                absenteeList.push(allStudents[idx]);
             }
         }
 
